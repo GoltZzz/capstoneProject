@@ -1,0 +1,107 @@
+<%- layout('layouts/boilerplate') %>
+
+<div class="container">
+	<div class="row flex-fill">
+		<div class="col-md-6 offset-md-3 col-xl-4 offset-xl-4">
+			<div class="card shadow">
+				<img
+					src="https://images.unsplash.com/photo-1575920197509-2de60ffa1b0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTB8fGZpcmVmaWdodGVyfGVufDB8MHwwfHx8MA%3D%3D"
+					class="card-img-top"
+					crossorigin="anonymous" />
+				<div class="card-body">
+					<h5 class="card-title">Register</h5>
+					<form
+						action="/register"
+						method="post"
+						class="validated-form"
+						novalidate
+						enctype="multipart/form-data">
+						<div class="mb-3">
+							<label for="username" class="form-label">Username</label>
+							<input
+								class="form-control"
+								type="text"
+								name="username"
+								id="username"
+								placeholder="Username"
+								autofocus
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please enter a username.</div>
+						</div>
+						<div class="mb-3">
+							<label for="password" class="form-label">Password</label>
+							<input
+								class="form-control"
+								type="password"
+								name="password"
+								id="password"
+								placeholder="Password"
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please enter a password.</div>
+						</div>
+						<div class="mb-3">
+							<label for="firstName" class="form-label">First Name</label>
+							<input
+								class="form-control"
+								type="firstName"
+								name="firstName"
+								id="firstName"
+								placeholder="First Name"
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please enter a First Name.</div>
+						</div>
+						<div class="mb-3">
+							<label for="lastName" class="form-label">Last Name</label>
+							<input
+								class="form-control"
+								type="lastName"
+								name="lastName"
+								id="lastName"
+								placeholder="Last Name"
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please enter a Last Name.</div>
+						</div>
+						<div class="mb-3">
+							<label for="email" class="form-label">Email</label>
+							<input
+								class="form-control"
+								type="email"
+								name="email"
+								id="email"
+								placeholder="johndoe@gmail.com"
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please enter a email.</div>
+						</div>
+						<div class="mb-3">
+							<label for="avatar" class="form-label">Upload Images</label>
+							<input
+								class="form-control"
+								type="file"
+								name="avatar"
+								id="avatar"
+								required />
+							<div class="valid-feedback">Looks good!</div>
+							<div class="invalid-feedback">Please upload an image.</div>
+						</div>
+						<div class="mb-3">
+							<label for="adminCode" class="form-label">Admin Code</label>
+							<input
+								class="form-control"
+								type="password"
+								name="adminCode"
+								id="adminCode"
+								placeholder="Admin Code Here (optional)" />
+							<div class="valid-feedback">Looks good!</div>
+						</div>
+						<button class="btn btn-success w-100">Register</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

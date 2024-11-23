@@ -1,0 +1,65 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="row">
+	<h1 class="text-center">Edit Device</h1>
+	<div class="col-md-6 offset-md-3">
+		<form
+			action="/sfas/<%=location._id%>?_method=PUT"
+			method="post"
+			class="validated-form"
+			novalidate
+			enctype="multipart/form-data">
+			<div class="mb-3">
+				<label for="title" class="form-label">Title:</label>
+				<input
+					class="form-control"
+					type="text"
+					name="title"
+					id="title"
+					value="<%= location.title  %>"
+					required />
+				<div class="valid-feedback">Looks good!</div>
+			</div>
+			<div class="mb-3">
+				<label for="description" class="form-label">description:</label>
+				<textarea
+					class="form-control"
+					name="description"
+					id="description"
+					required>
+<%= location.description %></textarea
+				>
+				<div class="valid-feedback">Looks good!</div>
+			</div>
+			<div class="mb-3">
+				<label for="image" class="form-label">Add More Images</label>
+				<input
+					class="form-control"
+					type="file"
+					name="image"
+					id="image"
+					multiple
+					required />
+				<div class="valid-feedback">Looks good!</div>
+				<div class="invalid-feedback">Please upload an image.</div>
+			</div>
+			<div class="mb-3">
+				<% location.images.forEach(function(image, i){ %>
+				<img src="<%= image.thumbnail %>" class="img-thumbnail" />
+				<div class="form-check-inline">
+					<input
+						type="checkbox"
+						name="deleteImages[]"
+						id="image-<%= i %>"
+						value="<%= image.filename %>" />
+				</div>
+				<label for="image-<%= i %>">Delete?</label>
+				<% })%>
+			</div>
+			<div class="mb-3">
+				<button class="btn btn-info">Edit Device</button>
+			</div>
+		</form>
+		<a href="/sfas/<%= location._id  %>">Cancel</a>
+	</div>
+</div>

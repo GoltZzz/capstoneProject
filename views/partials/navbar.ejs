@@ -1,0 +1,81 @@
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark p-3">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="#">S.F.A.S.</a>
+		<button
+			class="navbar-toggler"
+			type="button"
+			data-bs-toggle="collapse"
+			data-bs-target="#navbarNav"
+			aria-controls="navbarNav"
+			aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<div class="navbar-nav">
+				<a class="nav-link" href="/">Home</a>
+				<% if (currentUser && !currentUser.isAdmin) { %>
+				<a class="nav-link" href="/sfas">Devices</a>
+				<a class="nav-link" href="/sfas/new">New Device</a>
+				<a class="nav-link" href="/contacts">Email Report</a>
+				<% } %> <% if (currentUser && currentUser.isAdmin) { %>
+				<a class="nav-link" href="/register">Add A Client</a>
+				<a class="nav-link" href="/admin/users">Admin Dashboard</a>
+				<% } %>
+			</div>
+			<div class="navbar-nav ms-auto">
+				<% if (currentUser && currentUser.isAdmin) { %>
+				<li class="nav-item dropdown">
+					<a
+						class="nav-link dropdown-toggle"
+						href="#"
+						id="navbarDropdown"
+						role="button"
+						data-bs-toggle="dropdown"
+						aria-expanded="false"
+						onclick="removeNotificationLink()">
+						Notifications
+						<span class="badge bg-danger" id="notification-count"
+							><%= notifications.length %></span
+						>
+					</a>
+					<% if (notifications.length < 1) { %>
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+						<li>Oppsss Nothing to see here...</li>
+					</ul>
+					<% }else{ %>
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+						<% notifications.forEach(function(notification) { %>
+						<li>
+							<a
+								class="dropdown-item"
+								href="/notifications/<%= notification._id %>"
+								><%= notification.name %> has send a report</a
+							>
+						</li>
+						<% }) %>
+					</ul>
+					<% } %>
+				</li>
+				<% } %> <% if(currentUser) {%>
+				<li class="nav-item dropdown">
+					<a
+						class="nav-link dropdown-toggle"
+						href="#"
+						id="navbarDropdown"
+						role="button"
+						data-bs-toggle="dropdown"
+						aria-expanded="false">
+						Welcome, <%= currentUser.username %>
+					</a>
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+						<li>
+							<a class="dropdown-item" href="/logout">Logout</a>
+						</li>
+					</ul>
+				</li>
+				<% } %>
+			</div>
+		</div>
+	</div>
+</nav>

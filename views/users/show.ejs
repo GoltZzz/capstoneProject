@@ -1,0 +1,49 @@
+<%- layout('layouts/boilerplate') %>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-6">
+			<h2>User Details</h2>
+			<div class="card shadow">
+				<div class="card-body">
+					<% if (user.avatars && user.avatars.length > 0 && user.avatars[0] &&
+					user.avatars[0].url) { %>
+					<img src="<%= user.avatars[0].url %>" class="img-fluid" />
+					<% } else { %> No Avatar <% } %>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item">Username: <%= user.username %></li>
+						<li class="list-group-item">Email: <%= user.email %></li>
+						<% if (user.isAdmin) { %>
+						<li class="list-group-item">Admin: Yes</li>
+						<% } else { %>
+						<li class="list-group-item">Admin: No</li>
+						<% } %>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<h2>Device Locations</h2>
+			<% if (user.locations.length === 0) { %>
+			<div class="alert alert-info">No device locations found.</div>
+			<% } else { %>
+			<div class="row">
+				<% user.locations.forEach(location => { %>
+				<div class="col-md-6">
+					<div class="card shadow mb-3">
+						<div class="card-body">
+							<h5 class="card-title"><%= location.title %></h5>
+							<p class="card-text">Location: <%= location.location %></p>
+							<% if (location.images.length > 0) { %>
+							<img src="<%= location.images[0].url %>" class="img-fluid" />
+							<% } %>
+							<p class="card-text">Owned By: <%= user.username %></p>
+						</div>
+					</div>
+				</div>
+				<% }); %>
+			</div>
+			<% } %>
+		</div>
+	</div>
+</div>

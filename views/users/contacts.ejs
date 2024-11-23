@@ -1,0 +1,58 @@
+<%- layout('layouts/boilerplate') %>
+<form
+	action="/contacts"
+	method="post"
+	class="validated-form shadow p-5 m-auto"
+	novalidate>
+	<div class="mb-3">
+		<label for="text" class="form-label">Name:</label>
+		<input
+			class="form-control rounded-pill border-0 shadow-sm"
+			type="text"
+			name="from"
+			id="text"
+			required
+			placeholder="<%= `${currentUser.firstName} ${currentUser.lastName}` %>"
+			value="<%= `${currentUser.firstName} ${currentUser.lastName}` %>" />
+		<div class="valid-feedback">Looks good!</div>
+		<div class="invalid-feedback">Please enter a Name.</div>
+	</div>
+	<div class="mb-3">
+		<label for="email" class="form-label">Email:</label>
+		<input
+			class="form-control rounded-pill border-0 shadow-sm"
+			type="email"
+			name="email"
+			id="email"
+			value="<%= currentUser.email %>"
+			required
+			placeholder="<%= currentUser.email %>" />
+		<div class="valid-feedback">Looks good!</div>
+		<div class="invalid-feedback">Please enter a valid Email.</div>
+	</div>
+	<div class="mb-3">
+		<label for="location" class="form-label">Select Location:</label>
+		<select class="form-control" name="location" id="location">
+			<% locations.forEach(location => { %>
+			<option value="<%= location._id %>">
+				<%= location.title %> - <%= location.location %>
+			</option>
+			<% }); %>
+		</select>
+	</div>
+	<div class="mb-3">
+		<label for="message" class="form-label">Report Text:</label>
+		<textarea
+			class="form-control border-0 shadow"
+			name="message"
+			id="message"
+			required
+			rows="5"
+			placeholder="Enter your message"></textarea>
+		<div class="valid-feedback">Looks good!</div>
+		<div class="invalid-feedback">Please fill out this field.</div>
+	</div>
+	<button class="btn btn-success rounded-pill shadow-sm w-100" type="submit">
+		Send Report
+	</button>
+</form>

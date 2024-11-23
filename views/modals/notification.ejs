@@ -1,0 +1,121 @@
+<%- layout('layouts/boilerplate') %>
+<style>
+	#map {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 1; /* ensure the map is on top of other elements */
+	}
+</style>
+<div id="map"></div>
+
+<script>
+			maptilersdk.config.apiKey = '<%= process.env.MAPTILER_API_KEY %>';
+			const map = new maptilersdk.Map({
+			  container: "map",
+			  style: maptilersdk.MapStyle.BRIGHT,
+			  center: [<%= notification.location.geometry.coordinates[0] %>, <%= notification.location.geometry.coordinates[1] %>],
+			  zoom: 15,
+			});
+			//   .addTo(map);
+
+		var size = 200;
+
+	var pulsingDot = {
+	    width: size,
+	    height: size,
+	    data: new Uint8Array(size * size * 4),
+
+	    onAdd: function () {
+	        var canvas = document.createElement('canvas');
+	        canvas.width = this.width;
+	        canvas.height = this.height;
+	        this.context = canvas.getContext('2d');
+	    },
+
+	    render: function () {
+	        var duration = 1000;
+	        var t = (performance.now() % duration) / duration; // update t with current time
+
+	        var radius = (size / 2) * 0.3;
+	        var outerRadius = (size / 2) * 0.7 * t + radius;
+	        var context = this.context;
+
+	        // draw outer circle
+	        context.clearRect(0, 0, this.width, this.height);
+	        context.beginPath();
+	        context.arc(
+	            this.width / 2,
+	            this.height / 2,
+	            outerRadius,
+	            0,
+	            Math.PI * 2
+	        );
+	        context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
+	        context.fill();
+
+	        // draw inner circle
+	        context.beginPath();
+	        context.arc(
+	            this.width / 2,
+	            this.height / 2,
+	            radius,
+	            0,
+	            Math.PI * 2
+	        );
+	        context.fillStyle = 'rgba(255, 100, 100, 1)';
+	        context.strokeStyle = 'white';
+	        context.lineWidth = 2 + 4 * (1 - t);
+	        context.fill();
+	        context.stroke();
+
+	        // update this image's data with data from the canvas
+	        this.data = context.getImageData(
+	            0,
+	            0,
+	            this.width,
+	            this.height
+	        ).data;
+
+	        // continuously repaint the map, resulting in the smooth animation of the dot
+	        map.triggerRepaint();
+
+	        // return `true` to let the map know that the image was updated
+	        return true;
+	    }
+	};
+
+	map.on('load', function () {
+	    map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+
+	    map.addSource('points', {
+	        'type': 'geojson',
+	        'data': {
+	            'type': 'FeatureCollection',
+	            'features': [
+	                {
+	                    'type': 'Feature',
+	                    'geometry': {
+	                        'type': 'Point',
+	                        'coordinates': [<%= notification.location.geometry.coordinates[0] %>, <%= notification.location.geometry.coordinates[1] %>]
+	                    }
+	                }
+	            ]
+	        }
+	    });
+	    map.addLayer({
+	        'id': 'points',
+	        'type': 'symbol',
+	        'source': 'points',
+	        'layout': {
+	            'icon-image': 'pulsing-dot'
+	        }
+	    });
+	});
+
+		const mapContainer = document.getElementById('map');
+		mapContainer.style.height = '100vh';
+		mapContainer.style.width = '100vw';
+</script>
