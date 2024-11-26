@@ -14,9 +14,9 @@
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<div class="navbar-nav">
 				<a class="nav-link" href="/">Home</a>
-				<% if (currentUser && !currentUser.isAdmin) { %>
 				<a class="nav-link" href="/sfas">Devices</a>
 				<a class="nav-link" href="/sfas/new">New Device</a>
+				<% if (currentUser && !currentUser.isAdmin) { %>
 				<a class="nav-link" href="/contacts">Email Report</a>
 				<% } %> <% if (currentUser && currentUser.isAdmin) { %>
 				<a class="nav-link" href="/register">Add A Client</a>
@@ -32,8 +32,7 @@
 						id="navbarDropdown"
 						role="button"
 						data-bs-toggle="dropdown"
-						aria-expanded="false"
-						onclick="removeNotificationLink()">
+						aria-expanded="false">
 						Notifications
 						<span class="badge bg-danger" id="notification-count"
 							><%= notifications.length %></span

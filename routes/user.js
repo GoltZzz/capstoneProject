@@ -32,4 +32,10 @@ router.post("/contacts", users.sendReports);
 
 router.get("/admin/users", isLoggedIn, isAdmin, users.adminDashboard);
 router.get("/admin/users/:id", isLoggedIn, isAdmin, users.userShowPage);
+router.delete(
+	"/admin/users/:id",
+	isLoggedIn,
+	isAdmin,
+	catchAsync(users.deleteUser)
+);
 module.exports = router;

@@ -1,6 +1,7 @@
 const { locationSchema, reviewSchema } = require("./schemas");
 const Location = require("./models/sfas");
 const Review = require("./models/review");
+const User = require("./models/user");
 const ExpressError = require("./utils/ExpressError");
 
 module.exports.isLoggedIn = (req, res, next) => {

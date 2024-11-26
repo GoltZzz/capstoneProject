@@ -1,139 +1,247 @@
 <%- layout('layouts/boilerplate') %>
 
-<h1 style="text-align: center; margin-top: 20px; font-size: 2rem; color: #333">
-	Admin Dashboard
-</h1>
-<main class="container mt-5 container-fluid">
-	<div
-		class="dashboard-stats"
-		style="
-			display: flex;
-			justify-content: space-around;
-			margin: 20px auto;
-			flex-wrap: wrap;
-		">
-		<p
-			style="
-				font-size: 1.2rem;
-				padding: 10px;
-				background-color: #f8f9fa;
-				border-radius: 8px;
-				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-			">
-			<strong>Total Users:</strong> <%= usersCount %>
-		</p>
-	</div>
+<div class="container-fluid mt-4">
+	<h1
+		class="text-center mb-4"
+		style="font-size: 2.5rem; color: #2c3e50; transition: color 0.3s">
+		Admin Dashboard
+	</h1>
 
-	<div
-		class="dashboard-grid"
-		style="
-			display: grid;
-			grid-template-columns: 1fr 2fr;
-			gap: 20px;
-			margin: 20px;
-		">
-		<div class="notifications-section">
-			<h2 style="font-size: 1.5rem; margin-bottom: 15px; display: inline-block">
-				Notifications
-			</h2>
-			<button
-				class="btn btn-sm btn-secondary hide-all-notifications"
-				style="float: right; margin-left: 10px">
-				Hide All
-			</button>
-			<button
-				class="btn btn-sm btn-secondary show-all-notifications"
-				style="float: right">
-				Show All
-			</button>
-			<ul style="list-style: none; padding: 0; margin: 0">
-				<% notifications.reverse().forEach(notification => { %>
-				<li
-					class="notification"
-					style="
-						padding: 15px;
-						background: #f1f1f1;
-						margin-bottom: 10px;
-						border-radius: 5px;
-						box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-					">
-					<strong>From:</strong>
-					<a href="/notifications/<%= notification._id %>"
-						><%= notification.name %></a
-					>
-					<br />
-					<strong>Message:</strong> <%= notification.message %>
-					<br />
-					<strong>Location Title:</strong> <%= notification.location ?
-					notification.location.title : 'No Location' %>
-					<br />
-					<strong>Location Details:</strong> <%= notification.location ?
-					notification.location.location : 'No Location Details' %>
-				</li>
-				<% }); %>
-			</ul>
+	<div class="row mb-4">
+		<!-- Total Users Card -->
+		<div class="col-lg-3 col-md-6 mb-4">
+			<div class="card text-center shadow-sm transition-card h-100">
+				<div class="card-body">
+					<h5 class="card-title">Total Users</h5>
+					<div class="d-flex justify-content-center align-items-center">
+						<i class="fas fa-users fa-3x text-info mr-3"></i>
+						<h2 class="display-4 font-weight-bold ml-3"><%= usersCount %></h2>
+					</div>
+				</div>
+			</div>
 		</div>
 
-		<div
-			class="users-table-wrapper"
-			style="
-				overflow-x: auto;
-				padding: 10px;
-				background: #ffffff;
-				border-radius: 8px;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-			">
-			<table
-				class="admin-dashboard-table"
-				style="width: 100%; border-collapse: collapse; margin: 0 auto">
-				<thead style="background: #007bff; color: #fff">
-					<tr>
-						<th style="text-align: center; padding: 10px">Username</th>
-						<th style="text-align: center; padding: 10px">Email</th>
-						<th style="text-align: center; padding: 10px">First Name</th>
-						<th style="text-align: center; padding: 10px">Last Name</th>
-						<th style="text-align: center; padding: 10px">Admin</th>
-						<th style="text-align: center; padding: 10px">Avatar</th>
-					</tr>
-				</thead>
-				<tbody>
-					<% users.forEach(user => { %>
-					<tr style="background: #f9f9f9; border-bottom: 1px solid #ddd">
-						<td style="text-align: center; padding: 15px">
+		<!-- Users with Locations Card -->
+		<div class="col-lg-3 col-md-6 mb-4">
+			<div class="card shadow-sm h-100 transition-card">
+				<div class="card-body">
+					<h5 class="card-title">Users with Locations</h5>
+					<canvas id="usersLocationsChart"></canvas>
+				</div>
+			</div>
+		</div>
+
+		<!-- User Distribution Card -->
+		<div class="col-lg-3 col-md-6 mb-4">
+			<div class="card shadow-sm h-100 transition-card">
+				<div class="card-body">
+					<h5 class="card-title">User Distribution</h5>
+					<canvas id="userDistributionChart"></canvas>
+				</div>
+			</div>
+		</div>
+
+		<!-- Notifications Card -->
+		<div class="col-lg-3 col-md-6 mb-4">
+			<div class="card shadow-sm h-100 transition-card">
+				<div class="card-body">
+					<h5 class="card-title">Notifications</h5>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="badge bg-danger rounded-pill">
+							<%= notificationCount %> Unread
+						</span>
+						<div>
+							<button
+								class="btn btn-sm btn-secondary hide-all-notifications mr-1">
+								Hide All
+							</button>
+							<button class="btn btn-sm btn-secondary show-all-notifications">
+								Show All
+							</button>
+						</div>
+					</div>
+					<ul
+						class="list-group list-group-flush mt-3 overflow-auto"
+						style="max-height: 200px">
+						<% notifications.reverse().forEach(notification => { %>
+						<li class="list-group-item">
 							<a
-								href="/admin/users/<%= user._id %>"
-								style="color: #007bff; text-decoration: none"
-								><%= user.username %></a
-							>
-						</td>
-						<td style="text-align: center; padding: 15px"><%= user.email %></td>
-						<td style="text-align: center; padding: 15px">
-							<%= user.firstName %>
-						</td>
-						<td style="text-align: center; padding: 15px">
-							<%= user.lastName %>
-						</td>
-						<td style="text-align: center; padding: 15px">
-							<%= user.isAdmin ? 'Yes' : 'No' %>
-						</td>
-						<td style="text-align: center; padding: 15px">
-							<% if (user.avatars && user.avatars.length > 0 && user.avatars[0]
-							&& user.avatars[0].url) { %>
-							<img
-								src="<%= user.avatars[0].url %>"
-								alt="Avatar"
-								style="
-									width: 80px;
-									height: 80px;
-									border-radius: 50%;
-									object-fit: cover;
-								" />
-							<% } else { %> No Avatar <% } %>
-						</td>
-					</tr>
-					<% }); %>
-				</tbody>
-			</table>
+								href="/notifications/<%= notification._id %>"
+								class="text-decoration-none">
+								<strong><%= notification.name %></strong>
+								<p class="text-muted mb-0">
+									<%= notification.message.substring(0, 50) %>...
+								</p>
+							</a>
+						</li>
+						<% }); %>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
-</main>
+
+	<div class="row">
+		<div class="col-12">
+			<div class="card shadow-sm transition-card">
+				<div class="card-header bg-info text-white">
+					<h4 class="mb-0">User Management</h4>
+				</div>
+				<div class="card-body">
+					<div class="table-responsive">
+						<table class="table table-striped table-hover">
+							<thead class="thead-light">
+								<tr>
+									<th>Username</th>
+									<th>Email</th>
+									<th>First Name</th>
+									<th>Last Name</th>
+									<th>Admin Status</th>
+									<th>Avatar</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<% users.forEach(user => { %>
+								<tr>
+									<td>
+										<a href="/admin/users/<%= user._id %>" class="text-primary">
+											<%= user.username %>
+										</a>
+									</td>
+									<td><%= user.email %></td>
+									<td><%= user.firstName %></td>
+									<td><%= user.lastName %></td>
+									<td>
+										<span
+											class="badge <%= user.isAdmin ? 'bg-success' : 'bg-secondary' %>">
+											<%= user.isAdmin ? 'Admin' : 'User ' %>
+										</span>
+									</td>
+									<td>
+										<% if (user.avatars && user.avatars.length > 0 &&
+										user.avatars[0] && user.avatars[0].url) { %>
+										<img
+											src="<%= user.avatars[0].url %>"
+											alt="Avatar"
+											class="rounded-circle"
+											style="width: 50px; height: 50px; object-fit: cover" />
+										<% } else { %> No Avatar <% } %>
+									</td>
+									<td>
+										<form
+											action="/admin/users/<%= user._id %>?_method=DELETE"
+											method="post"
+											class="d-inline">
+											<button class="btn btn-sm btn-danger">
+												<i class="fas fa-trash"></i>
+											</button>
+										</form>
+									</td>
+								</tr>
+								<% }); %>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add these to your boilerplate layout or at the end of the body -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+	// User Distribution Chart
+	const ctx = document.getElementById('userDistributionChart').getContext('2d');
+	const locationsCtx = document.getElementById('usersLocationsChart').getContext('2d');
+
+	// Calculate admin and non-admin users
+	const totalUsers = <%= usersCount %>;
+	const adminUsers = <%= users.filter(user => user.isAdmin).length %>;
+	const nonAdminUsers = totalUsers - adminUsers;
+
+	// Calculate users with and without locations
+	const usersWithLocations = <%= users.filter(user => user.locations && user.locations.length > 0).length %>;
+	const usersWithoutLocations = totalUsers - usersWithLocations;
+
+	// Admin Users Distribution Chart
+	new Chart(ctx, {
+	    type: 'pie',
+	    data: {
+	        labels: ['Admin Users', 'Regular Users'],
+	        datasets: [{
+	            data: [adminUsers, nonAdminUsers],
+	            backgroundColor: [
+	                'rgba(52, 152, 219, 0.6)', // Light Blue
+	                'rgba(231, 76, 60, 0.6)'   // Light Red
+	            ],
+	            borderColor: [
+	                'rgba(52, 152, 219, 1)',
+	                'rgba(231, 76, 60, 1)'
+	            ],
+	            borderWidth: 1
+	        }]
+	    },
+	    options: {
+	        responsive: true,
+	        plugins: {
+	            legend: {
+	                position: 'top',
+	            },
+	            title: {
+	                display: true,
+	                text: 'User  Admin Distribution'
+	            }
+	        }
+	    }
+	});
+
+	// Users with Locations Chart
+	new Chart(locationsCtx, {
+	    type: 'doughnut',
+	    data: {
+	        labels: ['Users with Locations', 'Users without Locations'],
+	        datasets: [{
+	            data: [usersWithLocations, usersWithoutLocations],
+	            backgroundColor: [
+	                'rgba(46, 204, 113, 0.6)', // Green
+	                'rgba(241, 196, 15, 0.6)'  // Yellow
+	            ],
+	            borderColor: [
+	                'rgba(46, 204, 113, 1)',
+	                'rgba(241, 196, 15, 1)'
+	            ],
+	            borderWidth: 1
+	        }]
+	    },
+	    options: {
+	        responsive: true,
+	        plugins: {
+	            legend: {
+	                position: 'top',
+	            },
+	            title: {
+	                display: true,
+	                text: 'Users with Registered Locations'
+	            }
+	        }
+	    }
+	});
+</script>
+
+<style>
+	.transition-card {
+		transition: transform 0.3s, box-shadow 0.3s;
+	}
+	.transition-card:hover {
+		transform: scale(1.05);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	}
+	h1 {
+		transition: color 0.3s;
+	}
+	.table-hover tbody tr:hover {
+		background-color: rgba(52, 152, 219, 0.1);
+	}
+</style>

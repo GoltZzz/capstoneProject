@@ -1,15 +1,20 @@
-maptilersdk.config.apiKey = maptilerApiKey;
-
-const map = new maptilersdk.Map({
+mapboxgl.accessToken = mapToken;
+const map = new mapboxgl.Map({
 	container: "map",
-	style: maptilersdk.MapStyle.BRIGHT,
+	style: "mapbox://styles/mapbox/streets-v12",
+	projection: "globe",
 	center: [121.549072, 16.690014],
 	zoom: 15,
 });
 
 map.on("load", function () {
+	// Add a new source from our GeoJSON data and
+	// set the 'cluster' option to true. GL-JS will
+	// add the point_count property to your source data.
 	map.addSource("locations", {
 		type: "geojson",
+		// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+		// from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
 		data: locations,
 		cluster: true,
 		clusterMaxZoom: 14, // Max zoom to cluster points on
@@ -22,8 +27,11 @@ map.on("load", function () {
 		source: "locations",
 		filter: ["has", "point_count"],
 		paint: {
-			// Use step expressions (https://docs.maptiler.com/gl-style-specification/expressions/#step)
+			// Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
 			// with three steps to implement three types of circles:
+			//   * Blue, 20px circles when point count is less than 100
+			//   * Yellow, 30px circles when point count is between 100 and 750
+			//   * Pink, 40px circles when point count is greater than or equal to 750
 			"circle-color": [
 				"step",
 				["get", "point_count"],
@@ -63,18 +71,21 @@ map.on("load", function () {
 	});
 
 	// inspect a cluster on click
-	map.on("click", "clusters", async (e) => {
+	map.on("click", "clusters", function (e) {
 		const features = map.queryRenderedFeatures(e.point, {
 			layers: ["clusters"],
 		});
 		const clusterId = features[0].properties.cluster_id;
-		const zoom = await map
+		map
 			.getSource("locations")
-			.getClusterExpansionZoom(clusterId);
-		map.easeTo({
-			center: features[0].geometry.coordinates,
-			zoom,
-		});
+			.getClusterExpansionZoom(clusterId, function (err, zoom) {
+				if (err) return;
+
+				map.easeTo({
+					center: features[0].geometry.coordinates,
+					zoom: zoom,
+				});
+			});
 	});
 
 	// When a click event occurs on a feature in
@@ -92,16 +103,25 @@ map.on("load", function () {
 			coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
 		}
 
-		new maptilersdk.Popup()
-			.setLngLat(coordinates)
-			.setHTML(popUpMarkup)
-			.addTo(map);
+		new mapboxgl.Popup().setLngLat(coordinates).setHTML(popUpMarkup).addTo(map);
 	});
 
-	map.on("mouseenter", "clusters", () => {
+	map.on("mouseenter", "clusters", function () {
 		map.getCanvas().style.cursor = "pointer";
 	});
-	map.on("mouseleave", "clusters", () => {
+	map.on("mouseleave", "clusters", function () {
 		map.getCanvas().style.cursor = "";
 	});
+	map.addControl(new mapboxgl.NavigationControl());
+	map.addControl(
+		new mapboxgl.GeolocateControl({
+			positionOptions: {
+				enableHighAccuracy: true,
+			},
+			// When active the map will receive updates to the device's location as it changes.
+			trackUserLocation: true,
+			// Draw an arrow next to the location dot to indicate which direction the device is heading.
+			showUserHeading: true,
+		})
+	);
 });

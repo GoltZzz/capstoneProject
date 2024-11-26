@@ -8,8 +8,11 @@ const mg = mailgun({
 	domain: process.env.MAILGUN_DOMAIN,
 });
 
-module.exports.renderRegisterForm = (req, res) => {
-	res.render("users/register");
+module.exports.renderRegisterForm = async (req, res) => {
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
+	res.render("users/register", { notifications });
 };
 
 module.exports.createUser = async (req, res, next) => {
@@ -102,8 +105,10 @@ module.exports.userShowPage = async (req, res, next) => {
 
 	const locations = await Location.find({ owner: user._id });
 	user.locations = locations;
-
-	res.render("users/show", { user });
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
+	res.render("users/show", { user, notifications });
 };
 
 module.exports.createContactForm = async (req, res) => {
@@ -155,5 +160,20 @@ module.exports.sendReports = async (req, res) => {
 		console.error("Error sending email:", error);
 		req.flash("error", `Error sending email: ${error.message}`);
 		res.redirect("/contacts");
+	}
+};
+
+module.exports.deleteUser = async (req, res) => {
+	const { id } = req.params;
+	try {
+		await Notification.deleteMany({ sender: id });
+		await Location.deleteMany({ owner: id });
+
+		await User.findByIdAndDelete(id);
+		req.flash("success", "User  deleted successfully!");
+		res.redirect("/admin/users");
+	} catch (error) {
+		req.flash("error", "Error deleting user");
+		res.redirect("/admin/users");
 	}
 };

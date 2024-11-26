@@ -1,8 +1,12 @@
+if (process.env.NODE_ENV !== "production") {
+	require("dotenv").config();
+}
 const mongoose = require("mongoose");
 const Location = require("../models/sfas");
 const cities = require("./cities");
 const { places, descriptors } = require("./seedHelpers");
-
+// const dbUrl = process.env.DB_URL;
+// mongodb://127.0.0.1:27017/sfas
 mongoose
 	.connect("mongodb://127.0.0.1:27017/sfas")
 	.then(() => {
@@ -20,7 +24,7 @@ const seedDB = async () => {
 	for (let i = 0; i < 10; i++) {
 		const random5 = Math.floor(Math.random() * 5);
 		const location = new Location({
-			owner: "67190d0c0fcf9c6c8e8d0b40",
+			owner: "673774841ae13f0cea9d6270",
 			location: `${cities[random5].city}, ${cities[random5].island}`,
 			title: `${sample(descriptors)} ${sample(places)}`,
 			geometry: {

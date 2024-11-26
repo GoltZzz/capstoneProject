@@ -1,7 +1,9 @@
 const Location = require("../models/sfas");
+const Notification = require("../models/notifications");
 const { cloudinary } = require("../cloudinary");
-const maptilerClient = require("@maptiler/client");
-maptilerClient.config.apiKey = process.env.MAPTILER_API_KEY;
+const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
+const mapBoxToken = process.env.MAPBOX_TOKEN;
+const geocoder = mbxGeocoding({ accessToken: mapBoxToken });
 
 function escapeRegex(text) {
 	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -18,38 +20,52 @@ module.exports.index = async (req, res) => {
 		}
 		res.render("device/index", { locations });
 	} else {
+		const notifications = await Notification.find({ isAdmin: true }).populate(
+			"location"
+		);
 		const locations = await Location.find({});
-		res.render("device/index", { locations });
+		res.render("device/index", { locations, notifications });
 	}
 };
 
-module.exports.renderForm = (req, res) => {
-	res.render("device/new");
+module.exports.renderForm = async (req, res) => {
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
+	res.render("device/new", { notifications });
 };
 
 module.exports.createLocation = async (req, res) => {
-	const geoData = await maptilerClient.geocoding.forward(req.body.location, {
-		limit: 1,
-	});
-	if (!geoData || !geoData.features || geoData.features.length === 0) {
-		req.flash("error", "Unable to find location. Please try again.");
+	try {
+		const geoData = await geocoder
+			.forwardGeocode({
+				query: req.body.location,
+				limit: 1,
+			})
+			.send();
+		const location = new Location(req.body);
+		location.geometry = geoData.body.features[0].geometry;
+		location.images = req.files.map((f) => ({
+			url: f.path,
+			filename: f.filename,
+		}));
+		location.owner = req.user._id;
+		await location.save();
+		console.log(location);
+		req.flash("success", "New Device Location Added!");
+		res.redirect(`/sfas/${location._id}`);
+	} catch (error) {
+		console.error("Error adding location:", error);
+		req.flash("error", "An error occurred while adding the location.");
 		return res.redirect("/sfas/new");
 	}
-	const location = new Location(req.body);
-	location.geometry = geoData.features[0].geometry;
-	location.images = req.files.map((f) => ({
-		url: f.path,
-		filename: f.filename,
-	}));
-	location.owner = req.user._id;
-	await location.save();
-	console.log(location);
-	req.flash("success", "New Device Location Added!");
-	res.redirect(`/sfas/${location._id}`);
 };
 
 module.exports.showDevices = async (req, res) => {
 	const { id } = req.params;
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
 	const location = await Location.findById(id)
 		.populate({ path: "reviews", populate: { path: "owner" } })
 		.populate("owner");
@@ -58,27 +74,31 @@ module.exports.showDevices = async (req, res) => {
 		req.flash("error", "Device Location Not Found!");
 		return res.redirect("/sfas");
 	}
-	res.render("device/show", { location });
+	res.render("device/show", { location, notifications });
 };
 
 module.exports.renderEditLocation = async (req, res) => {
 	const { id } = req.params;
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
 	const location = await Location.findById(id);
 	if (!location) {
 		req.flash("error", "Device Location Not Found!");
 		return res.redirect("/sfas");
 	}
-	res.render("device/edit", { location });
+	res.render("device/edit", { location, notifications });
 };
 
 module.exports.editLocation = async (req, res) => {
 	const { id } = req.params;
-	console.log(req.body);
+	const notifications = await Notification.find({ isAdmin: true }).populate(
+		"location"
+	);
 	const geoData = await maptilerClient.geocoding.forward(req.body.location, {
 		limit: 1,
 	});
 	location.geometry = geoData.features[0].geometry;
-	console.log(geoData);
 	console.log(location.geometry);
 	const imgs = req.files.map((f) => ({
 		url: f.path,
@@ -98,7 +118,7 @@ module.exports.editLocation = async (req, res) => {
 		console.log(location);
 	}
 	req.flash("success", "Successfully Updated Device Location!");
-	res.redirect(`/sfas/${location._id}`);
+	res.redirect(`/sfas/${location._id}`, { notifications });
 };
 
 module.exports.deleteLocation = async (req, res) => {

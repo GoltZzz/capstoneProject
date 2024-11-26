@@ -6,22 +6,20 @@
 		left: 0;
 		width: 100vw;
 		height: 100vh;
-		z-index: 1; /* ensure the map is on top of other elements */
+		z-index: 1;
 	}
 </style>
 <div id="map"></div>
-
 <script>
-			maptilersdk.config.apiKey = '<%= process.env.MAPTILER_API_KEY %>';
-			const map = new maptilersdk.Map({
-			  container: "map",
-			  style: maptilersdk.MapStyle.BRIGHT,
-			  center: [<%= notification.location.geometry.coordinates[0] %>, <%= notification.location.geometry.coordinates[1] %>],
-			  zoom: 15,
-			});
-			//   .addTo(map);
+	mapboxgl.accessToken = '<%= process.env.MAPBOX_TOKEN %>';
+	const map = new mapboxgl.Map({
+	    container: 'map',
+	    style: 'mapbox://styles/mapbox/bright-v9',
+	    center: [<%= notification.location.geometry.coordinates[0] %>, <%= notification.location.geometry.coordinates[1] %>],
+	    zoom: 15
+	});
 
-		var size = 200;
+	var size = 200;
 
 	var pulsingDot = {
 	    width: size,
@@ -37,13 +35,12 @@
 
 	    render: function () {
 	        var duration = 1000;
-	        var t = (performance.now() % duration) / duration; // update t with current time
+	        var t = (performance.now() % duration) / duration;
 
 	        var radius = (size / 2) * 0.3;
 	        var outerRadius = (size / 2) * 0.7 * t + radius;
 	        var context = this.context;
 
-	        // draw outer circle
 	        context.clearRect(0, 0, this.width, this.height);
 	        context.beginPath();
 	        context.arc(
@@ -56,7 +53,6 @@
 	        context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
 	        context.fill();
 
-	        // draw inner circle
 	        context.beginPath();
 	        context.arc(
 	            this.width / 2,
@@ -71,7 +67,6 @@
 	        context.fill();
 	        context.stroke();
 
-	        // update this image's data with data from the canvas
 	        this.data = context.getImageData(
 	            0,
 	            0,
@@ -79,10 +74,6 @@
 	            this.height
 	        ).data;
 
-	        // continuously repaint the map, resulting in the smooth animation of the dot
-	        map.triggerRepaint();
-
-	        // return `true` to let the map know that the image was updated
 	        return true;
 	    }
 	};
@@ -105,6 +96,7 @@
 	            ]
 	        }
 	    });
+
 	    map.addLayer({
 	        'id': 'points',
 	        'type': 'symbol',
@@ -115,7 +107,7 @@
 	    });
 	});
 
-		const mapContainer = document.getElementById('map');
-		mapContainer.style.height = '100vh';
-		mapContainer.style.width = '100vw';
+	const mapContainer = document.getElementById('map');
+	mapContainer.style.height = '100vh';
+	mapContainer.style.width = '100vw';
 </script>

@@ -17,7 +17,6 @@ const User = require("./models/user");
 const ExpressMongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
 // const MongoDBStore = require("connect-mongo");
-
 // const dbUrl = process.env.DB_URL;
 
 // router.use
@@ -63,31 +62,40 @@ app.use(flash());
 
 const scriptSrcUrls = [
 	"https://stackpath.bootstrapcdn.com/",
-	// "https://api.tiles.mapbox.com/",
-	// "https://api.mapbox.com/",
+	"https://api.tiles.mapbox.com/",
+	"https://api.mapbox.com/",
 	"https://kit.fontawesome.com/",
 	"https://cdnjs.cloudflare.com/",
 	"https://cdn.jsdelivr.net",
-	"https://cdn.maptiler.com/",
+	// "https://cdn.maptiler.com/",
+	"https://kit.fontawesome.com/",
+	"https://ka-f.fontawesome.com/",
 ];
 const styleSrcUrls = [
 	"https://kit-free.fontawesome.com/",
 	"https://stackpath.bootstrapcdn.com/",
-	// "https://api.mapbox.com/",
-	// "https://api.tiles.mapbox.com/",
+	"https://api.mapbox.com/",
+	"https://api.tiles.mapbox.com/",
 	"https://fonts.googleapis.com/",
 	"https://use.fontawesome.com/",
 	"https://cdn.jsdelivr.net",
-	"https://cdn.maptiler.com/",
+	// "https://cdn.maptiler.com/",
+	"https://ka-f.fontawesome.com/",
+	"https://fonts.googleapis.com/",
 ];
 const connectSrcUrls = [
-	// "https://api.mapbox.com/",
-	// "https://a.tiles.mapbox.com/",
-	// "https://b.tiles.mapbox.com/",
-	// "https://events.mapbox.com/",
-	"https://api.maptiler.com/",
+	"https://api.mapbox.com/",
+	"https://a.tiles.mapbox.com/",
+	"https://b.tiles.mapbox.com/",
+	"https://events.mapbox.com/",
+	// "https://api.maptiler.com/",
+	"https://ka-f.fontawesome.com/",
 ];
-const fontSrcUrls = [];
+const fontSrcUrls = [
+	"'self'",
+	"https://ka-f.fontawesome.com/",
+	"https://fonts.gstatic.com/",
+];
 app.use(
 	helmet.contentSecurityPolicy({
 		directives: {
@@ -101,6 +109,7 @@ app.use(
 			],
 			scriptSrcAttr: "'unsafe-inline'",
 			styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+			fontSrc: ["'self'", ...fontSrcUrls],
 			workerSrc: ["'self'", "blob:"],
 			objectSrc: [],
 			imgSrc: [
@@ -109,7 +118,7 @@ app.use(
 				"data:",
 				`https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`,
 				"https://images.unsplash.com/",
-				"https://api.maptiler.com/",
+				// "https://api.maptiler.com/",
 			],
 			fontSrc: ["'self'", ...fontSrcUrls],
 		},

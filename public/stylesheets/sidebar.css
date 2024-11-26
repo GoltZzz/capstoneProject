@@ -1,0 +1,66 @@
+body {
+	overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.sidebar {
+	height: 100%;
+	width: 70px; /* Minimized width */
+	position: fixed;
+	top: 0;
+	left: 0; /* Start from the left */
+	background-color: #343a40; /* Dark background */
+	color: #ffffff; /* White text */
+	transition: width 0.3s ease; /* Smooth width transition */
+	box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); /* Shadow effect */
+	z-index: 1000; /* Ensure it is above other elements */
+}
+
+.sidebar:hover {
+	width: 250px; /* Expanded width on hover */
+}
+
+.sidebar-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px; /* Padding for header */
+	background-color: #007bff; /* Header background color */
+	border-bottom: 1px solid #0056b3; /* Bottom border */
+}
+
+.sidebar-header h2 {
+	font-size: 18px; /* Header font size */
+	margin: 0; /* Remove default margin */
+	color: #ffffff; /* White text */
+}
+
+.close-btn {
+	cursor: pointer; /* Pointer cursor for close button */
+	font-size: 24px; /* Close button size */
+	color: #ffffff; /* White color */
+}
+
+.sidebar-menu {
+	list-style: none;
+	padding: 0;
+	margin: 0; /* Remove margin */
+}
+
+.sidebar-menu li {
+	margin: 20px 0; /* Space between menu items */
+}
+
+.sidebar-menu a {
+	color: #ffffff; /* White text */
+	text-decoration: none; /* Remove underline */
+	font-size: 16px; /* Font size */
+	display: flex; /* Flex for alignment */
+	align-items: center; /* Center items vertically */
+	padding: 10px 15px; /* Padding for links */
+	transition: background-color 0 3s ease; /* Smooth background color transition */
+}
+
+.sidebar-menu a:hover {
+	background-color: #0056b3; /* Change background on hover */
+	border-radius: 5px; /* Rounded corners */
+}
