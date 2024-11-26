@@ -21,6 +21,17 @@
 				<div class="valid-feedback">Looks good!</div>
 			</div>
 			<div class="mb-3">
+				<label for="location" class="form-label">Address:</label>
+				<input
+					class="form-control"
+					type="text"
+					name="location"
+					id="location"
+					value="<%= location.location  %>"
+					required />
+				<div class="valid-feedback">Looks good!</div>
+			</div>
+			<div class="mb-3">
 				<label for="description" class="form-label">description:</label>
 				<textarea
 					class="form-control"
@@ -38,8 +49,7 @@
 					type="file"
 					name="image"
 					id="image"
-					multiple
-					required />
+					multiple />
 				<div class="valid-feedback">Looks good!</div>
 				<div class="invalid-feedback">Please upload an image.</div>
 			</div>

@@ -4,7 +4,7 @@ const map = new mapboxgl.Map({
 	style: "mapbox://styles/mapbox/streets-v12",
 	projection: "globe",
 	center: locations.geometry.coordinates,
-	zoom: 10,
+	zoom: 18,
 });
 
 new mapboxgl.Marker()

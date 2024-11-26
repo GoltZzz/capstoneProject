@@ -90,22 +90,48 @@ module.exports.renderEditLocation = async (req, res) => {
 	res.render("device/edit", { location, notifications });
 };
 
+// In controllers/location.js
 module.exports.editLocation = async (req, res) => {
 	const { id } = req.params;
 	const notifications = await Notification.find({ isAdmin: true }).populate(
 		"location"
 	);
-	const geoData = await maptilerClient.geocoding.forward(req.body.location, {
-		limit: 1,
-	});
-	location.geometry = geoData.features[0].geometry;
-	console.log(location.geometry);
-	const imgs = req.files.map((f) => ({
-		url: f.path,
-		filename: f.filename,
-	}));
-	location.images.push(...imgs);
-	await location.save();
+
+	// Find the existing location first
+	const location = await Location.findById(id);
+
+	if (!location) {
+		req.flash("error", "Location not found");
+		return res.redirect("/sfas");
+	}
+
+	// Merge existing location data with new data
+	location.title = req.body.title || location.title;
+	location.description = req.body.description || location.description;
+
+	// Only update location if a new one is provided
+	if (req.body.location) {
+		const geoData = await geocoder
+			.forwardGeocode({
+				query: req.body.location,
+				limit: 1,
+			})
+			.send();
+
+		location.location = req.body.location;
+		location.geometry = geoData.body.features[0].geometry;
+	}
+
+	// Handle image uploads
+	if (req.files && req.files.length > 0) {
+		const imgs = req.files.map((f) => ({
+			url: f.path,
+			filename: f.filename,
+		}));
+		location.images.push(...imgs);
+	}
+
+	// Handle image deletion
 	if (req.body.deleteImages) {
 		for (let filename of req.body.deleteImages) {
 			await cloudinary.uploader.destroy(filename);
@@ -115,12 +141,13 @@ module.exports.editLocation = async (req, res) => {
 				images: { filename: { $in: req.body.deleteImages } },
 			},
 		});
-		console.log(location);
 	}
-	req.flash("success", "Successfully Updated Device Location!");
-	res.redirect(`/sfas/${location._id}`, { notifications });
-};
 
+	await location.save();
+
+	req.flash("success", "Successfully Updated Device Location!");
+	res.redirect(`/sfas/${location._id}`);
+};
 module.exports.deleteLocation = async (req, res) => {
 	const { id } = req.params;
 	await Location.findByIdAndDelete(id);

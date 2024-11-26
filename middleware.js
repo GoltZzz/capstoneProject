@@ -3,6 +3,31 @@ const Location = require("./models/sfas");
 const Review = require("./models/review");
 const User = require("./models/user");
 const ExpressError = require("./utils/ExpressError");
+const BaseJoi = require("joi");
+const sanitizeHtml = require("sanitize-html");
+
+const extension = (joi) => ({
+	type: "string",
+	base: joi.string(),
+	messages: {
+		"string.escapeHTML": "{{#label}} must not include HTML!",
+	},
+	rules: {
+		escapeHTML: {
+			validate(value, helpers) {
+				const clean = sanitizeHtml(value, {
+					allowedTags: [],
+					allowedAttributes: {},
+				});
+				if (clean !== value)
+					return helpers.error("string.escapeHTML", { value });
+				return clean;
+			},
+		},
+	},
+});
+
+const Joi = BaseJoi.extend(extension);
 
 module.exports.isLoggedIn = (req, res, next) => {
 	if (!req.isAuthenticated()) {
@@ -14,6 +39,14 @@ module.exports.isLoggedIn = (req, res, next) => {
 };
 
 module.exports.validateLocation = (req, res, next) => {
+	const locationSchema = Joi.object({
+		title: Joi.string().optional().escapeHTML(),
+		location: Joi.string().optional().escapeHTML(),
+		description: Joi.string().optional().escapeHTML(),
+		deleteImages: Joi.array(),
+		_id: Joi.string(),
+	});
+
 	const { error } = locationSchema.validate(req.body);
 	if (error) {
 		const msg = error.details.map((element) => element.message).join(",");

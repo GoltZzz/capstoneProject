@@ -75,8 +75,11 @@ module.exports.logout = (req, res) => {
 };
 
 module.exports.adminDashboard = async (req, res) => {
-	const users = await User.find();
-	const usersCount = await User.countAll();
+	const users = await User.find().populate("locations");
+	const usersCount = await User.countDocuments();
+	const usersWithLocations = users.filter(
+		(user) => user.locations.length > 0
+	).length;
 	const notifications = await Notification.find({ isAdmin: true }).populate(
 		"location"
 	);
@@ -89,6 +92,7 @@ module.exports.adminDashboard = async (req, res) => {
 	res.render("users/index", {
 		users,
 		usersCount,
+		usersWithLocations,
 		notifications,
 		notificationCount,
 	});
@@ -166,11 +170,15 @@ module.exports.sendReports = async (req, res) => {
 module.exports.deleteUser = async (req, res) => {
 	const { id } = req.params;
 	try {
-		await Notification.deleteMany({ sender: id });
+		const locations = await Location.find({ owner: id });
+		const locationIds = locations.map((location) => location._id);
 		await Location.deleteMany({ owner: id });
-
+		await Notification.deleteMany({ sender: id });
+		await User.findByIdAndUpdate(id, {
+			$pull: { locations: { $in: locationIds } },
+		});
 		await User.findByIdAndDelete(id);
-		req.flash("success", "User  deleted successfully!");
+		req.flash("success", "User deleted successfully!");
 		res.redirect("/admin/users");
 	} catch (error) {
 		req.flash("error", "Error deleting user");

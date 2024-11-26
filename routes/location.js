@@ -22,7 +22,7 @@ router.get("/new", isLoggedIn, location.renderForm);
 
 router
 	.route("/:id")
-	.get(catchAsync(location.showDevices))
+	.get(isLoggedIn, catchAsync(location.showDevices))
 	.put(
 		isLoggedIn,
 		isOwner,

@@ -162,8 +162,8 @@
 	const nonAdminUsers = totalUsers - adminUsers;
 
 	// Calculate users with and without locations
-	const usersWithLocations = <%= users.filter(user => user.locations && user.locations.length > 0).length %>;
-	const usersWithoutLocations = totalUsers - usersWithLocations;
+	const usersWithLocations = <%= usersWithLocations %>;
+	const usersWithoutLocations = <%= usersCount %> - usersWithLocations;
 
 	// Admin Users Distribution Chart
 	new Chart(ctx, {

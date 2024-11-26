@@ -30,6 +30,7 @@ module.exports.locationSchema = Joi.object({
 	location: Joi.string().required().escapeHTML(),
 	description: Joi.string().required().escapeHTML(),
 	deleteImages: Joi.array(),
+	_id: Joi.string(),
 });
 
 module.exports.reviewSchema = Joi.object({
