@@ -19,9 +19,8 @@
 	</head>
 	<body class="d-flex flex-column vh-100">
 		<%- include('../partials/navbar.ejs') %>
-		<main class="container-fluid">
-			<%- include('../partials/flash.ejs') %>
-			<div class="content-area"><%- body %></div>
+		<main class="container mt-5">
+			<%- include('../partials/flash')%> <%- body %>
 		</main>
 		<%- include('../partials/footer.ejs') %>
 
