@@ -9,10 +9,7 @@ const mg = mailgun({
 });
 
 module.exports.renderRegisterForm = async (req, res) => {
-	const notifications = await Notification.find({ isAdmin: true }).populate(
-		"location"
-	);
-	res.render("users/register", { notifications });
+	res.render("users/register");
 };
 
 module.exports.createUser = async (req, res, next) => {
@@ -21,13 +18,14 @@ module.exports.createUser = async (req, res, next) => {
 			username,
 			email,
 			password,
-			adminCode,
+			role,
 			firstName,
 			lastName,
 			avatar,
 		} = req.body;
 		const user = new User({ email, username, firstName, lastName });
 		const registeredUser = await User.register(user, password);
+		
 		if (req.file && Array.isArray(req.file)) {
 			registeredUser.avatars = req.file.map((f) => ({
 				url: f.path,
@@ -39,14 +37,17 @@ module.exports.createUser = async (req, res, next) => {
 				filename: req.file.filename,
 			};
 		}
-		console.log(registeredUser.avatars);
-		if (adminCode === "thisisnotagoodadmincode") {
+		
+		// Set admin status based on role selection
+		if (role === 'admin') {
 			registeredUser.isAdmin = true;
-			console.log(registeredUser);
+		} else {
+			registeredUser.isAdmin = false;
 		}
+		
 		await registeredUser.save();
-		req.flash("success", "User created successfully!");
-		res.redirect("/admin/users"); // redirect to the admin dashboard or a success page
+		req.flash("success", `${firstName} ${lastName} has been created successfully as a ${role}!`);
+		res.redirect("/admin/users");
 	} catch (error) {
 		req.flash("error", error.message);
 		res.redirect("/register");
@@ -75,24 +76,32 @@ module.exports.logout = (req, res) => {
 };
 
 module.exports.adminDashboard = async (req, res) => {
-	const users = await User.find().populate("locations");
+	const users = await User.find();
 	const usersCount = await User.countDocuments();
-	const usersWithLocations = users.filter(
+	
+	// Get locations for each user
+	const usersWithLocationsPromises = users.map(async (user) => {
+		const locations = await Location.find({ owner: user._id });
+		return {
+			...user.toObject(),
+			locations: locations
+		};
+	});
+	const usersWithLocations = await Promise.all(usersWithLocationsPromises);
+	
+	const usersWithLocationsCount = usersWithLocations.filter(
 		(user) => user.locations.length > 0
 	).length;
+
 	const notifications = await Notification.find({ isAdmin: true }).populate(
 		"location"
 	);
 	const notificationCount = notifications.length;
-	const notificationIds = notifications.map((notification) => notification._id);
-	await Notification.updateMany(
-		{ _id: { $in: notificationIds } },
-		{ $set: { isRead: true } }
-	);
+
 	res.render("users/index", {
-		users,
+		users: usersWithLocations,
 		usersCount,
-		usersWithLocations,
+		usersWithLocations: usersWithLocationsCount,
 		notifications,
 		notificationCount,
 	});
@@ -109,15 +118,37 @@ module.exports.userShowPage = async (req, res, next) => {
 
 	const locations = await Location.find({ owner: user._id });
 	user.locations = locations;
-	const notifications = await Notification.find({ isAdmin: true }).populate(
-		"location"
-	);
-	res.render("users/show", { user, notifications });
+	res.render("users/show", { user });
+};
+
+module.exports.userLocations = async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    
+    if (!user) {
+        req.flash('error', 'User not found');
+        return res.redirect('/admin/users');
+    }
+
+    const locations = await Location.find({ owner: user._id });
+    
+    res.render('users/locations', { 
+        user: {
+            ...user.toObject(),
+            locations: locations
+        }
+    });
 };
 
 module.exports.createContactForm = async (req, res) => {
 	const user = await User.findById(req.user._id);
 	const locations = await Location.find({ owner: user._id });
+	
+	if (!locations || locations.length === 0) {
+		req.flash("error", "You need to add at least one location before sending an email report");
+		return res.redirect("/sfas");
+	}
+	
 	res.render("users/contacts", { locations });
 };
 
@@ -126,6 +157,18 @@ module.exports.sendReports = async (req, res) => {
 	const { from, email, message, location } = req.body;
 	try {
 		const user = await User.findById(req.user._id);
+		const locations = await Location.find({ owner: user._id });
+		
+		if (!locations || locations.length === 0) {
+			req.flash("error", "You need to add at least one location before sending an email report");
+			return res.redirect("/sfas");
+		}
+
+		if (!location) {
+			req.flash("error", "Please select a location for your report");
+			return res.redirect("/contacts");
+		}
+
 		const selectedLocation = await Location.findById(location);
 		if (!selectedLocation) {
 			req.flash("error", "Location not found");

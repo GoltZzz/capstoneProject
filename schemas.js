@@ -32,8 +32,3 @@ module.exports.locationSchema = Joi.object({
 	deleteImages: Joi.array(),
 	_id: Joi.string(),
 });
-
-module.exports.reviewSchema = Joi.object({
-	body: Joi.string().required().escapeHTML(),
-	rating: Joi.number().required().min(1).max(5),
-});

@@ -1,215 +1,352 @@
 <%- layout('layouts/boilerplate') %>
 <style>
-	#map {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-	}
+    .notification-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        padding: 20px;
+    }
+    
+    .notification-content {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #map {
+        width: 100%;
+        height: 500px;
+        border-radius: 10px;
+    }
+
+    .mark-read-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .mark-read-btn:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+
+    .mark-read-btn.read {
+        background-color: #808080;
+    }
+
+    .notification-delete-btn {
+        background-color: #ff0000;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+    }
+
+    .modal-cancel-btn {
+        background-color: #cccccc;
+        color: #333;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .modal-delete-btn {
+        background-color: #ff0000;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 </style>
-<div id="map"></div>
+
+<div class="notification-container">
+    <div class="notification-content">
+        <h2>Notification Details</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="notification-actions">
+                <button class="mark-read-btn <%= notification.isRead ? 'read' : '' %>" 
+                    onclick="markAsRead('<%= notification._id %>')" 
+                    <%= notification.isRead ? 'disabled' : '' %>>
+                    <%= notification.isRead ? 'Already Read' : 'Mark as Read' %>
+                </button>
+                <form action="/notifications/<%= notification._id %>?_method=DELETE" method="POST" style="display: inline;">
+                    <button type="submit" class="notification-delete-btn delete-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        <% if (notification.message) { %>
+            <p><%= notification.message %></p>
+        <% } %>
+        <% if (notification.location) { %>
+            <h3>Location</h3>
+            <div id="map"></div>
+        <% } %>
+    </div>
+</div>
+
+<div class="modal-header">
+    <h5 class="modal-title">Notifications</h5>
+    <div class="d-flex align-items-center">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="togglePreferences()">
+            <i class="bi bi-gear"></i>
+        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+</div>
+<div class="modal-body">
+    <%- include('../partials/notification-preferences') %>
+    <div class="notifications-list">
+        <!-- Notifications will be loaded here -->
+    </div>
+</div>
+
 <script>
 
-		mapboxgl.accessToken = '<%= process.env.MAPBOX_TOKEN %>';
+    mapboxgl.accessToken = '<%= process.env.MAPBOX_TOKEN %>';
 
-		const map = new mapboxgl.Map({
-		    container: 'map',
-		    style: 'mapbox://styles/mapbox/streets-v12',
-		    center: [121.5561, 16.69094], // Set initial center to the specified coordinates
-		    zoom: 15
-		});
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [121.5561, 16.69094], // Set initial center to the specified coordinates
+        zoom: 15
+    });
 
-		function isValidLocation(location) {
-		    return location &&
-		           typeof location.longitude === 'number' &&
-		           typeof location.latitude === 'number' &&
-		           !isNaN(location.longitude) &&
-		           !isNaN(location.latitude) &&
-		           location.longitude !== 0 &&
-		           location.latitude !== 0;
-		}
+    function isValidLocation(location) {
+        return location &&
+               typeof location.longitude === 'number' &&
+               typeof location.latitude === 'number' &&
+               !isNaN(location.longitude) &&
+               !isNaN(location.latitude) &&
+               location.longitude !== 0 &&
+               location.latitude !== 0;
+    }
 
-		// Override the getUser Location function to return fixed coordinates
-		function getUserLocation() {
-		    return new Promise((resolve) => {
-		        const userLocation = {
-		            longitude: 121.5561,
-		            latitude: 16.69094
-		        };
-		        console.log('User  Location:', userLocation);
-		        resolve(userLocation);
-		    });
-		}
+    // Override the getUser Location function to return fixed coordinates
+    function getUserLocation() {
+        return new Promise((resolve) => {
+            const userLocation = {
+                longitude: 121.5561,
+                latitude: 16.69094
+            };
+            console.log('User  Location:', userLocation);
+            resolve(userLocation);
+        });
+    }
 
-		function getDirections(start, end) {
-		    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
+    function getDirections(start, end) {
+        const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
 
-		    fetch(directionsUrl)
-		        .then(response => response.json())
-		        .then(data => {
-		            if (data.routes && data.routes.length > 0) {
-		                const route = data.routes[0].geometry.coordinates;
-		                addRouteToMap(route);
-		            } else {
-		                console.error('No routes found');
-		            }
-		        })
-		        .catch(error => {
-		            console.error('Error fetching directions:', error);
-		        });
-		}
+        fetch(directionsUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0].geometry.coordinates;
+                    addRouteToMap(route);
+                } else {
+                    console.error('No routes found');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching directions:', error);
+            });
+    }
 
-		function addRouteToMap(route) {
-		    // Remove existing route if it exists
-		    if (map.getSource('route')) {
-		        map.removeLayer('route');
-		        map.removeSource('route');
-		    }
+    function addRouteToMap(route) {
+        // Remove existing route if it exists
+        if (map.getSource('route')) {
+            map.removeLayer('route');
+            map.removeSource('route');
+        }
 
-		    // Add the route as a new source
-		    map.addSource('route', {
-		        type: 'geojson',
-		        data: {
-		            type: 'Feature',
-		            properties: {},
-		            geometry: {
-		                type: 'LineString',
-		                coordinates: route
-		            }
-		        }
-		    });
+        // Add the route as a new source
+        map.addSource('route', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: route
+                }
+            }
+        });
 
-		    // Add a layer to visualize the route
-		    map.addLayer({
-		        id: 'route',
-		        type: 'line',
-		        source: 'route',
-		        layout: {
-		            'line-join': 'round',
-		            'line-cap': 'round'
-		        },
-		        paint: {
-		            'line-color': '#888',
-		            'line-width': 8
-		        }
-		    });
-		}
+        // Add a layer to visualize the route
+        map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': '#888',
+                'line-width': 8
+            }
+        });
+    }
 
-		function addMarkersAndCenter(location) {
-	    const notificationLocation = {
-	        longitude: <%= notification.location.geometry.coordinates[0] %>,
-	        latitude: <%= notification.location.geometry.coordinates[1] %>
-	    };
+    function addMarkersAndCenter(location) {
+        const notificationLocation = {
+            longitude: <%= notification.location.geometry.coordinates[0] %>,
+            latitude: <%= notification.location.geometry.coordinates[1] %>
+        };
 
-	    // Distance calculation function
-	    function calculateDistance(start, end) {
-	        const R = 6371; // Radius of the Earth in kilometers
-	        const dLat = (end.latitude - start.latitude) * Math.PI / 180;
-	        const dLon = (end.longitude - start.longitude) * Math.PI / 180;
-	        const a =
-	            Math.sin(dLat/2) * Math.sin(dLat/2) +
-	            Math.cos(start.latitude * Math.PI / 180) * Math.cos(end.latitude * Math.PI / 180) *
-	            Math.sin(dLon/2) * Math.sin(dLon/2);
-	        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-	        const distance = R * c; // Distance in kilometers
-	        return distance.toFixed(2); // Return distance rounded to 2 decimal places
-	    }
+        // Distance calculation function
+        function calculateDistance(start, end) {
+            const R = 6371; // Radius of the Earth in kilometers
+            const dLat = (end.latitude - start.latitude) * Math.PI / 180;
+            const dLon = (end.longitude - start.longitude) * Math.PI / 180;
+            const a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(start.latitude * Math.PI / 180) * Math.cos(end.latitude * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in kilometers
+            return distance.toFixed(2); // Return distance rounded to 2 decimal places
+        }
 
-	    // Clear any existing markers
-	    map.getCanvas().querySelectorAll('.mapboxgl-marker').forEach(marker => marker.remove());
+        // Clear any existing markers
+        map.getCanvas().querySelectorAll('.mapboxgl-marker').forEach(marker => marker.remove());
 
-	    // Add user location marker if available
-	    if (isValidLocation(location)) {
-	        new mapboxgl.Marker({ color: 'blue' })
-	            .setLngLat([location.longitude, location.latitude])
-	            .addTo(map);
-	    }
+        // Add user location marker if available
+        if (isValidLocation(location)) {
+            new mapboxgl.Marker({ color: 'blue' })
+                .setLngLat([location.longitude, location.latitude])
+                .addTo(map);
+        }
 
-	    // Calculate distance
-	    let distanceText = 'Not Available';
-	    if (isValidLocation(location)) {
-	        const distance = calculateDistance(location, notificationLocation);
-	        distanceText = `${distance} km`;
-	    }
+        // Calculate distance
+        let distanceText = 'Not Available';
+        if (isValidLocation(location)) {
+            const distance = calculateDistance(location, notificationLocation);
+            distanceText = `${distance} km`;
+        }
 
-	    // Prepare popup content
-	    let popupContent = `
-	        <div style="min-width: 250px; text-align: left;">
-	            <h3> <%= notification.location.title %> </h3>
-	            <hr>
-	            <strong>Address:</strong> <%= notification.location.location || 'Not Available' %>
-	            <br><strong>Distance:</strong> ${distanceText}
-	            <br><strong>Coordinates:</strong>
-	                ${notificationLocation.latitude.toFixed(4)}°N,
-	                ${notificationLocation.longitude.toFixed(4)}°E
-	        `;
+        // Prepare popup content
+        let popupContent = `
+            <div style="min-width: 250px; text-align: left;">
+                <h3> <%= notification.location.title %> </h3>
+                <hr>
+                <strong>Address:</strong> <%= notification.location.location || 'Not Available' %>
+                <br><strong>Distance:</strong> ${distanceText}
+                <br><strong>Coordinates:</strong>
+                    ${notificationLocation.latitude.toFixed(4)}°N,
+                    ${notificationLocation.longitude.toFixed(4)}°E
+        `;
 
-	    // Add estimated travel time if location is valid
-	    if (isValidLocation(location)) {
-	        const distance = parseFloat(calculateDistance(location, notificationLocation));
-	        // Assume average driving speed of 50 km/h
-	        const estimatedTimeHours = distance / 50;
-	        const estimatedTimeMinutes = Math.round(estimatedTimeHours * 60);
+        // Add estimated travel time if location is valid
+        if (isValidLocation(location)) {
+            const distance = parseFloat(calculateDistance(location, notificationLocation));
+            // Assume average driving speed of 50 km/h
+            const estimatedTimeHours = distance / 50;
+            const estimatedTimeMinutes = Math.round(estimatedTimeHours * 60);
 
-	        popupContent += `
-	            <br><strong>Estimated Travel Time:</strong> ${estimatedTimeMinutes} minutes (driving)
-	        `;
-	    }
+            popupContent += `
+                <br><strong>Estimated Travel Time:</strong> ${estimatedTimeMinutes} minutes (driving)
+            `;
+        }
 
-	    popupContent += '</div>';
+        popupContent += '</div>';
 
-	    // Create popup that's always open
-	    const popup = new mapboxgl.Popup({
-	        offset: 25,
-	        closeButton: false,
-	        closeOnClick: false,
-	        maxWidth: '300px'
-	    })
-	    .setLngLat([notificationLocation.longitude, notificationLocation.latitude])
-	    .setHTML(popupContent)
-	    .addTo(map);
+        // Create popup that's always open
+        const popup = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: false,
+            closeOnClick: false,
+            maxWidth: '300px'
+        })
+        .setLngLat([notificationLocation.longitude, notificationLocation.latitude])
+        .setHTML(popupContent)
+        .addTo(map);
 
-	    // Add notification location marker
-	    const marker = new mapboxgl.Marker({ color: 'red' })
-	        .setLngLat([notificationLocation.longitude, notificationLocation.latitude])
-	        .addTo(map);
+        // Add notification location marker
+        const marker = new mapboxgl.Marker({ color: 'red' })
+            .setLngLat([notificationLocation.longitude, notificationLocation.latitude])
+            .addTo(map);
 
-	    // Fit bounds to show both locations if possible
-	    const bounds = new mapboxgl.LngLatBounds();
-	    bounds.extend([notificationLocation.longitude, notificationLocation.latitude]);
+        // Fit bounds to show both locations if possible
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend([notificationLocation.longitude, notificationLocation.latitude]);
 
-	    if (isValidLocation(location)) {
-	        bounds.extend([location.longitude, location.latitude]);
-	        map.fitBounds(bounds, {
-	            padding: 50,
-	            maxZoom: 15
-	        });
-	        // Fetch and display directions
-	        getDirections(location, notificationLocation);
-	    } else {
-	        // If no valid user location, center on notification location
-	        map.setCenter([notificationLocation.longitude, notificationLocation.latitude]);
-	        map.setZoom(15);
-	    }
-	}
+        if (isValidLocation(location)) {
+            bounds.extend([location.longitude, location.latitude]);
+            map.fitBounds(bounds, {
+                padding: 50,
+                maxZoom: 15
+            });
+            // Fetch and display directions
+            getDirections(location, notificationLocation);
+        } else {
+            // If no valid user location, center on notification location
+            map.setCenter([notificationLocation.longitude, notificationLocation.latitude]);
+            map.setZoom(15);
+        }
+    }
 
-		// Main execution
-		map.on('load', () => {
-		    getUserLocation()
-		        .then(addMarkersAndCenter)
-		        .catch(error => {
-		            console.warn('Could not get user location:', error);
+    // Main execution
+    map.on('load', () => {
+        getUserLocation()
+            .then(addMarkersAndCenter)
+            .catch(error => {
+                console.warn('Could not get user location:', error);
 
-		            // Fallback to notification location
-		            addMarkersAndCenter({
-		                longitude: <%= notification.location.geometry.coordinates[0] %>,
-		                latitude: <%= notification.location.geometry.coordinates[1] %>
-		            });
-		        });
-		});
+                // Fallback to notification location
+                addMarkersAndCenter({
+                    longitude: <%= notification.location.geometry.coordinates[0] %>,
+                    latitude: <%= notification.location.geometry.coordinates[1] %>
+                });
+            });
+    });
 
-		const mapContainer = document.getElementById('map');
-		mapContainer.style.height = '100vh';
-		mapContainer.style.width = '100vw';
+    const mapContainer = document.getElementById('map');
+    mapContainer.style.height = '500px';
+    mapContainer.style.width = '100%';
+
+    async function markAsRead(notificationId) {
+        const button = document.querySelector('.mark-read-btn');
+        if (button.classList.contains('read')) return;
+        
+        // Change button state immediately
+        button.classList.add('read');
+        button.textContent = 'Processing...';
+        
+        try {
+            const response = await fetch(`/notifications/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to mark notification as read');
+            }
+            
+            window.location.href = '/admin';
+        } catch (error) {
+            console.error('Error:', error);
+            button.classList.remove('read');
+            button.textContent = 'Notification has been read';
+        }
+    }
 </script>

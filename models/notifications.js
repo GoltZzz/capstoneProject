@@ -21,6 +21,10 @@ const notificationSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "Location",
 	},
+	timestamp: {
+		type: Date,
+		default: Date.now,
+	},
 });
 
 module.exports = mongoose.model("Notification", notificationSchema);

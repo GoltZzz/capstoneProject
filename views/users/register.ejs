@@ -1,107 +1,316 @@
-<%- layout('layouts/boilerplate') %>
+<% layout('layouts/boilerplate') %>
 
-<div class="container">
-	<div class="row flex-fill">
-		<div class="col-md-6 offset-md-3 col-xl-4 offset-xl-4">
-			<div class="card shadow">
-				<img
-					src="https://images.unsplash.com/photo-1575920197509-2de60ffa1b0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTB8fGZpcmVmaWdodGVyfGVufDB8MHwwfHx8MA%3D%3D"
-					class="card-img-top"
-					crossorigin="anonymous" />
-				<div class="card-body">
-					<h5 class="card-title">Register</h5>
-					<form
-						action="/register"
-						method="post"
-						class="validated-form"
-						novalidate
-						enctype="multipart/form-data">
-						<div class="mb-3">
-							<label for="username" class="form-label">Username</label>
-							<input
-								class="form-control"
-								type="text"
-								name="username"
-								id="username"
-								placeholder="Username"
-								autofocus
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a username.</div>
-						</div>
-						<div class="mb-3">
-							<label for="password" class="form-label">Password</label>
-							<input
-								class="form-control"
-								type="password"
-								name="password"
-								id="password"
-								placeholder="Password"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a password.</div>
-						</div>
-						<div class="mb-3">
-							<label for="firstName" class="form-label">First Name</label>
-							<input
-								class="form-control"
-								type="firstName"
-								name="firstName"
-								id="firstName"
-								placeholder="First Name"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a First Name.</div>
-						</div>
-						<div class="mb-3">
-							<label for="lastName" class="form-label">Last Name</label>
-							<input
-								class="form-control"
-								type="lastName"
-								name="lastName"
-								id="lastName"
-								placeholder="Last Name"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a Last Name.</div>
-						</div>
-						<div class="mb-3">
-							<label for="email" class="form-label">Email</label>
-							<input
-								class="form-control"
-								type="email"
-								name="email"
-								id="email"
-								placeholder="johndoe@gmail.com"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a email.</div>
-						</div>
-						<div class="mb-3">
-							<label for="avatar" class="form-label">Upload Images</label>
-							<input
-								class="form-control"
-								type="file"
-								name="avatar"
-								id="avatar"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please upload an image.</div>
-						</div>
-						<div class="mb-3">
-							<label for="adminCode" class="form-label">Admin Code</label>
-							<input
-								class="form-control"
-								type="password"
-								name="adminCode"
-								id="adminCode"
-								placeholder="Admin Code Here (optional)" />
-							<div class="valid-feedback">Looks good!</div>
-						</div>
-						<button class="btn btn-success w-100">Register</button>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="auth-container d-flex align-items-center justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card shadow-lg">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h2>Add A User</h2>
+                    </div>
+
+                    <form action="/register" method="POST" class="auth-form validated-form" novalidate enctype="multipart/form-data">
+                        <div class="auth-input-group">
+                            <input type="text" 
+                                   class="auth-input" 
+                                   id="firstName" 
+                                   name="firstName" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-user"></i>
+                            <label for="firstName">First Name</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter your first name.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <input type="text" 
+                                   class="auth-input" 
+                                   id="lastName" 
+                                   name="lastName" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-user"></i>
+                            <label for="lastName">Last Name</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter your last name.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <input type="text" 
+                                   class="auth-input" 
+                                   id="username" 
+                                   name="username" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-id-badge"></i>
+                            <label for="username">Username</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please choose a username.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <input type="email" 
+                                   class="auth-input" 
+                                   id="email" 
+                                   name="email" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-envelope"></i>
+                            <label for="email">Email Address</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter a valid email.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <input type="password" 
+                                   class="auth-input" 
+                                   id="password" 
+                                   name="password" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-lock"></i>
+                            <label for="password">Password</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Password must be at least 8 characters.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <select class="auth-input" 
+                                    id="role" 
+                                    name="role" 
+                                    required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Administrator</option>
+                                <option value="user">Standard User</option>
+                            </select>
+                            <i class="fas fa-user-tag"></i>
+                            <label for="role" class="select-label">User Role</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please select a role.</div>
+                        </div>
+
+                        <div class="auth-input-group mb-4">
+                            <div class="custom-file-upload">
+                                <input type="file" class="auth-input" id="avatar" name="avatar" accept="image/*">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">
+                                    <strong>Click to upload</strong> or drag and drop
+                                </div>
+                                <div class="upload-hint">
+                                    Profile picture (optional) - JPG, PNG (max. 5MB)
+                                </div>
+                                <div class="preview-container" id="preview"></div>
+                            </div>
+                        </div>
+
+                        <style>
+                            .auth-btn {
+                                background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+                                color: white;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                font-size: 1rem;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                width: 100%;
+                                position: relative;
+                                overflow: hidden;
+                                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                            }
+
+                            .auth-btn:hover {
+                                transform: translateY(-2px);
+                                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+                            }
+
+                            .auth-btn:active {
+                                transform: translateY(0);
+                                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                            }
+
+                            .auth-btn::before {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                left: -100%;
+                                width: 100%;
+                                height: 100%;
+                                background: linear-gradient(
+                                    120deg,
+                                    transparent,
+                                    rgba(255, 255, 255, 0.2),
+                                    transparent
+                                );
+                                transition: 0.5s;
+                            }
+
+                            .auth-btn:hover::before {
+                                left: 100%;
+                            }
+
+                            .custom-file-upload {
+                                border: 2px dashed #1a2a6c;
+                                border-radius: 8px;
+                                padding: 2rem 1rem;
+                                text-align: center;
+                                cursor: pointer;
+                                background: #f8f9fa;
+                                transition: all 0.3s ease;
+                                margin-bottom: 1rem;
+                            }
+
+                            .custom-file-upload:hover {
+                                border-color: #fdbb2d;
+                                background: rgba(253, 187, 45, 0.05);
+                            }
+
+                            .upload-icon {
+                                font-size: 2rem;
+                                color: #1a2a6c;
+                                margin-bottom: 1rem;
+                            }
+
+                            .upload-text {
+                                margin-bottom: 0.5rem;
+                                color: #495057;
+                            }
+
+                            .upload-hint {
+                                font-size: 0.875rem;
+                                color: #6c757d;
+                            }
+
+                            .preview-container {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 1rem;
+                                margin-top: 1rem;
+                            }
+
+                            .preview-image {
+                                position: relative;
+                                width: 100px;
+                                height: 100px;
+                                border-radius: 8px;
+                                overflow: hidden;
+                            }
+
+                            .preview-image img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                            }
+
+                            .remove-image {
+                                position: absolute;
+                                top: 5px;
+                                right: 5px;
+                                width: 20px;
+                                height: 20px;
+                                background: rgba(255, 255, 255, 0.9);
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                cursor: pointer;
+                                color: #b21f1f;
+                            }
+                        </style>
+                        <button class="auth-btn" type="submit">
+                            Create Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Enhanced image preview functionality
+    document.getElementById('avatar').addEventListener('change', function(e) {
+        const preview = document.querySelector('.preview-container');
+        preview.innerHTML = '';
+        
+        [...e.target.files].forEach(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'preview-image';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    wrapper.remove();
+                    if (preview.children.length === 0) {
+                        document.getElementById('avatar').value = '';
+                    }
+                };
+                
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.custom-file-upload');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.style.borderColor = '#fdbb2d';
+        dropZone.style.background = 'rgba(253, 187, 45, 0.05)';
+    }
+
+    function unhighlight(e) {
+        dropZone.style.borderColor = '#1a2a6c';
+        dropZone.style.background = '#f8f9fa';
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        document.getElementById('avatar').files = files;
+        
+        const event = new Event('change');
+        document.getElementById('avatar').dispatchEvent(event);
+    }
+</script>

@@ -37,21 +37,27 @@ module.exports.renderForm = async (req, res) => {
 
 module.exports.createLocation = async (req, res) => {
 	try {
-		const geoData = await geocoder
-			.forwardGeocode({
-				query: req.body.location,
-				limit: 1,
-			})
-			.send();
+		console.log('Starting location creation...');
 		const location = new Location(req.body);
-		location.geometry = geoData.body.features[0].geometry;
+		
+		console.log('Setting geometry...');
+		// Set the geometry directly from the coordinates
+		location.geometry = {
+			type: "Point",
+			coordinates: [parseFloat(req.body.lng), parseFloat(req.body.lat)]
+		};
+
+		console.log('Processing images...');
 		location.images = req.files.map((f) => ({
 			url: f.path,
 			filename: f.filename,
 		}));
 		location.owner = req.user._id;
+		
+		console.log('Saving location...');
 		await location.save();
-		console.log(location);
+		console.log('Location saved successfully:', location);
+		
 		req.flash("success", "New Device Location Added!");
 		res.redirect(`/sfas/${location._id}`);
 	} catch (error) {
@@ -66,9 +72,7 @@ module.exports.showDevices = async (req, res) => {
 	const notifications = await Notification.find({ isAdmin: true }).populate(
 		"location"
 	);
-	const location = await Location.findById(id)
-		.populate({ path: "reviews", populate: { path: "owner" } })
-		.populate("owner");
+	const location = await Location.findById(id).populate("owner");
 	console.log(location);
 	if (!location) {
 		req.flash("error", "Device Location Not Found!");
@@ -90,64 +94,78 @@ module.exports.renderEditLocation = async (req, res) => {
 	res.render("device/edit", { location, notifications });
 };
 
-// In controllers/location.js
 module.exports.editLocation = async (req, res) => {
-	const { id } = req.params;
-	const notifications = await Notification.find({ isAdmin: true }).populate(
-		"location"
-	);
+	try {
+        console.log('Starting location edit...');
+        const { id } = req.params;
 
-	// Find the existing location first
-	const location = await Location.findById(id);
+        const notifications = await Notification.find({ isAdmin: true }).populate(
+            "location"
+        );
 
-	if (!location) {
-		req.flash("error", "Location not found");
-		return res.redirect("/sfas");
-	}
+        console.log('Finding location...');
+        const location = await Location.findById(id);
 
-	// Merge existing location data with new data
-	location.title = req.body.title || location.title;
-	location.description = req.body.description || location.description;
+        if (!location) {
+            req.flash("error", "Location not found");
+            return res.redirect("/sfas");
+        }
 
-	// Only update location if a new one is provided
-	if (req.body.location) {
-		const geoData = await geocoder
-			.forwardGeocode({
-				query: req.body.location,
-				limit: 1,
-			})
-			.send();
+        console.log('Updating basic fields...');
+        // Merge existing location data with new data
+        location.title = req.body.title || location.title;
+        location.description = req.body.description || location.description;
 
-		location.location = req.body.location;
-		location.geometry = geoData.body.features[0].geometry;
-	}
+        // Update coordinates if provided
+        if (req.body.lng && req.body.lat) {
+            console.log('Updating coordinates...');
+            location.geometry = {
+                type: "Point",
+                coordinates: [parseFloat(req.body.lng), parseFloat(req.body.lat)]
+            };
+            location.location = req.body.location;
+        }
 
-	// Handle image uploads
-	if (req.files && req.files.length > 0) {
-		const imgs = req.files.map((f) => ({
-			url: f.path,
-			filename: f.filename,
-		}));
-		location.images.push(...imgs);
-	}
+        // Handle image uploads
+        if (req.files && req.files.length > 0) {
+            console.log('Processing new images...');
+            const imgs = req.files.map((f) => ({
+                url: f.path,
+                filename: f.filename,
+            }));
+            location.images.push(...imgs);
+        }
 
-	// Handle image deletion
-	if (req.body.deleteImages) {
-		for (let filename of req.body.deleteImages) {
-			await cloudinary.uploader.destroy(filename);
-		}
-		await location.updateOne({
-			$pull: {
-				images: { filename: { $in: req.body.deleteImages } },
-			},
-		});
-	}
+        // Handle image deletion
+        if (req.body.deleteImages) {
+            console.log('Deleting images...');
+            for (let filename of req.body.deleteImages) {
+                try {
+                    await cloudinary.uploader.destroy(filename);
+                } catch (err) {
+                    console.error('Error deleting image from Cloudinary:', err);
+                }
+            }
+            await location.updateOne({
+                $pull: {
+                    images: { filename: { $in: req.body.deleteImages } },
+                },
+            });
+        }
 
-	await location.save();
+        console.log('Saving location...');
+        await location.save();
 
-	req.flash("success", "Successfully Updated Device Location!");
-	res.redirect(`/sfas/${location._id}`);
+        console.log('Update complete!');
+        req.flash("success", "Successfully Updated Device Location!");
+        res.redirect(`/sfas/${location._id}`);
+    } catch (err) {
+        console.error('Error in editLocation:', err);
+        req.flash("error", "Error updating location: " + err.message);
+        res.redirect(`/sfas/${req.params.id}`);
+    }
 };
+
 module.exports.deleteLocation = async (req, res) => {
 	const { id } = req.params;
 	await Location.findByIdAndDelete(id);

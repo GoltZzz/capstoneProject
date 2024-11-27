@@ -1,43 +1,51 @@
 <%- layout('layouts/boilerplate') %>
 
-<div class="container d-flex justify-content-center align-items-center mt-5">
-	<div class="row flex-fill">
-		<div class="col-md-6 offset-md-3 col-xl-4 offset-xl-4">
-			<div class="card shadow">
-				<img
-					src="https://images.unsplash.com/photo-1575920197509-2de60ffa1b0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTB8fGZpcmVmaWdodGVyfGVufDB8MHwwfHx8MA%3D%3D"
-					class="card-img-top"
-					crossorigin="anonymous" />
-				<div class="card-body">
-					<h5 class="card-title">Login</h5>
-					<form action="/login" method="post" class="validated-form" novalidate>
-						<div class="mb-3">
-							<label for="username" class="form-label">Username</label>
-							<input
-								class="form-control"
-								type="text"
-								name="username"
-								id="username"
-								autofocus
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a username.</div>
-						</div>
-						<div class="mb-3">
-							<label for="password" class="form-label">Password</label>
-							<input
-								class="form-control"
-								type="password"
-								name="password"
-								id="password"
-								required />
-							<div class="valid-feedback">Looks good!</div>
-							<div class="invalid-feedback">Please enter a password.</div>
-						</div>
-						<button class="btn btn-success w-100">Login</button>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="auth-container d-flex align-items-center justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card shadow-lg">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <h2>Login</h2>
+                    </div>
+
+                    <form action="/login" method="POST" class="auth-form validated-form" novalidate>
+                        <div class="auth-input-group">
+                            <input type="text" 
+                                   class="auth-input" 
+                                   id="username" 
+                                   name="username" 
+                                   required 
+                                   placeholder=" "
+                                   autofocus>
+                            <i class="fas fa-user"></i>
+                            <label for="username">Username</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter your username.</div>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <input type="password" 
+                                   class="auth-input" 
+                                   id="password" 
+                                   name="password" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-lock"></i>
+                            <label for="password">Password</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please provide a password.</div>
+                        </div>
+
+                        <button class="auth-btn" type="submit">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

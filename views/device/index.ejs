@@ -1,60 +1,526 @@
-<% layout('layouts/boilerplate') %>
-<div id="map" style="width: 100%; height: 500px"></div>
-<h1 class="mt-3">All Devices</h1>
-<form
-	action="/sfas"
-	method="get"
-	class="form-inline d-flex justify-content-end">
-	<div class="form-group mb-3 me-2 w-50">
-		<input
-			type="text"
-			name="search"
-			id="search"
-			placeholder="Search"
-			class="form-control p-3" />
-	</div>
-	<button type="submit" class="btn btn-lg btn-block mb-3 search-button">
-		🔍
-	</button>
-</form>
-<div class="container">
-	<%for(let location of locations){%>
-	<div class="card mb-3 shadow">
-		<div class="row">
-			<div class="col-md-4">
-				<% if (location.images.length) { %>
-				<img
-					crossorigin="anonymous"
-					class="img-fluid"
-					alt=""
-					src="<%= location.images[0].url %>" />
-				<% }else{ %>
-				<img
-					crossorigin="anonymous"
-					class="img-fluid"
-					alt=""
-					src="https://images.unsplash.com/photo-1561439740-e8863909de77?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nzh8fGZpcmVmaWdodGVyfGVufDB8fDB8fHww" />
-				<% } %>
-			</div>
-			<div class="col-md-8">
-				<div class="card-body">
-					<h5 class="card-title"><%= location.title %></h5>
-					<p class="card-text"><%= location.description %></p>
-					<p class="card-text">
-						<small class="text-muted"><%= location.location %></small>
-					</p>
-					<a href="/sfas/<%= location._id %>" class="btn btn-primary"
-						>View <%= location.title %></a
-					>
-				</div>
-			</div>
-		</div>
-	</div>
-	<% } %>
+<%- layout('layouts/boilerplate') %>
+
+<style>
+    .device-dashboard {
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(26, 42, 108, 0.05) 0%, rgba(178, 31, 31, 0.05) 50%, rgba(253, 187, 45, 0.05) 100%);
+        min-height: calc(100vh - 60px);
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        color: white;
+    }
+
+    .header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+    }
+
+    .breadcrumb-item a {
+        color: white;
+        text-decoration: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        opacity: 0.8;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: '/';
+        margin: 0 0.5rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .map-container {
+        margin-bottom: 2rem;
+        background: white;
+        padding: 1rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideUp 0.8s ease-out forwards;
+        animation-delay: 0.2s;
+    }
+
+    .dashboard-header {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideUp 0.8s ease-out forwards;
+        animation-delay: 0.4s;
+    }
+
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+
+    .search-form {
+        flex: 0 1 400px;
+        min-width: 200px;
+    }
+
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.8rem 1rem;
+        padding-left: 3rem;
+        border: 2px solid rgba(26, 42, 108, 0.1);
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .search-input:focus {
+        border-color: #1a2a6c;
+        box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.1);
+        outline: none;
+    }
+
+    .search-button {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #1a2a6c;
+        transition: color 0.3s ease;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        z-index: 2;
+    }
+
+    .search-button:hover {
+        color: #b21f1f;
+    }
+
+    .show-all-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .show-all-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+
+    .devices-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 1rem 0;
+    }
+
+    .device-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(26, 42, 108, 0.1);
+        position: relative;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideUp 0.8s ease-out forwards;
+    }
+
+    .devices-container .device-card:nth-child(1) { animation-delay: 0.6s; }
+    .devices-container .device-card:nth-child(2) { animation-delay: 0.7s; }
+    .devices-container .device-card:nth-child(3) { animation-delay: 0.8s; }
+    .devices-container .device-card:nth-child(4) { animation-delay: 0.9s; }
+    .devices-container .device-card:nth-child(5) { animation-delay: 1.0s; }
+    .devices-container .device-card:nth-child(6) { animation-delay: 1.1s; }
+    .devices-container .device-card:nth-child(n+7) { animation-delay: 1.2s; }
+
+    .owner-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .my-location-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .device-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+        border-color: #1a2a6c;
+    }
+
+    .device-image {
+        position: relative;
+        padding-top: 60%;
+        overflow: hidden;
+    }
+
+    .device-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .device-card:hover .device-image img {
+        transform: scale(1.1);
+    }
+
+    .device-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(26, 42, 108, 0.8), rgba(178, 31, 31, 0.8));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .device-card:hover .device-overlay {
+        opacity: 1;
+    }
+
+    .view-button {
+        background: white;
+        color: #1a2a6c;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+
+    .device-card:hover .view-button {
+        transform: translateY(0);
+    }
+
+    .view-button:hover {
+        background: #1a2a6c;
+        color: white;
+    }
+
+    .device-info {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(26, 42, 108, 0.1);
+    }
+
+    .device-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a2a6c;
+        margin-bottom: 0.5rem;
+    }
+
+    .device-description {
+        color: #4a5568;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .device-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .device-location {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .device-location i {
+        color: #b21f1f;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1rem;
+        }
+
+        .search-form {
+            width: 100%;
+            max-width: none;
+        }
+
+        .devices-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="device-dashboard">
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">Devices</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Devices</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-container">
+        <div id="map" class="map-frame" style="width: 100%; height: 500px; border-radius: 8px;"></div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <form action="/sfas" method="GET" class="search-form" id="searchForm">
+            <div class="search-wrapper">
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="search" 
+                    placeholder="Search devices..." 
+                    class="search-input"
+                    autocomplete="off"
+                    value="<%= typeof search !== 'undefined' ? search : '' %>"
+                />
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button type="button" class="show-all-btn" id="showAllBtn">
+                    <i class="fas fa-globe"></i>
+                    Show All
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Devices Grid -->
+    <div class="devices-container">
+        <% 
+        // Sort locations to show current user's locations first
+        const sortedLocations = [...locations].sort((a, b) => {
+            const isCurrentUserA = a.owner && currentUser && a.owner.toString() === currentUser._id.toString();
+            const isCurrentUserB = b.owner && currentUser && b.owner.toString() === currentUser._id.toString();
+            
+            if (isCurrentUserA && !isCurrentUserB) return -1;
+            if (!isCurrentUserA && isCurrentUserB) return 1;
+            return 0;
+        });
+        
+        for(let location of sortedLocations) { 
+            const isCurrentUserLocation = location.owner && currentUser && location.owner.toString() === currentUser._id.toString();
+        %>
+        <div class="device-card" data-aos="fade-up">
+            <% if (isCurrentUserLocation) { %>
+            <div class="my-location-badge">
+                <i class="fas fa-user"></i>
+                My Location
+            </div>
+            <% } %>
+            <div class="device-image">
+                <% if (location.images.length) { %>
+                    <img crossorigin="anonymous" src="<%= location.images[0].url %>" alt="<%= location.title %>" />
+                <% } else { %>
+                    <img crossorigin="anonymous" src="https://images.unsplash.com/photo-1561439740-e8863909de77?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nzh8fGZpcmVmaWdodGVyfGVufDB8fDB8fHww" alt="Default Device Image" />
+                <% } %>
+                <div class="device-overlay">
+                    <a href="/sfas/<%= location._id %>" class="view-button">
+                        <i class="fas fa-eye me-2"></i>View Details
+                    </a>
+                </div>
+            </div>
+            <div class="device-info">
+                <h3 class="device-title"><%= location.title %></h3>
+                <p class="device-description"><%= location.description %></p>
+                <div class="device-meta">
+                    <span class="device-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <%= location.location %>
+                    </span>
+                    <% if (currentUser && location.owner) { %>
+                    <span class="device-author">
+                        <i class="fas fa-user"></i>
+                        <%= isCurrentUserLocation ? currentUser.firstName + ' ' + currentUser.lastName : 'Other User' %>
+                    </span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
 </div>
 
 <script>
-	const mapToken = '<%-process.env.MAPBOX_TOKEN%>';
-	const locations = {features: <%- JSON.stringify(locations) %>};
+    const locations = {features: <%- JSON.stringify(locations) %>};
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('search');
+    const showAllBtn = document.getElementById('showAllBtn');
+
+    // Handle search form submission
+    function handleSearch(event) {
+        event.preventDefault();
+        const searchValue = searchInput.value.trim();
+        
+        if (!searchValue) {
+            return false;
+        }
+        
+        searchForm.submit();
+    }
+
+    // Show all locations
+    if (showAllBtn) {
+        showAllBtn.addEventListener('click', function() {
+            window.location.href = '/sfas';
+        });
+    }
+
+    // Handle search input
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !this.value.trim()) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    // Attach form submit handler
+    if (searchForm && searchInput) {
+        searchForm.addEventListener('submit', handleSearch);
+    }
 </script>
 <script src="/javascripts/clusterMap.js"></script>
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        offset: 100,
+        once: true
+    });
+</script>

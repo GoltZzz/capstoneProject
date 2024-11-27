@@ -3,15 +3,15 @@ const map = new mapboxgl.Map({
 	container: "map",
 	style: "mapbox://styles/mapbox/streets-v12",
 	projection: "globe",
-	center: locations.geometry.coordinates,
+	center: deviceLocation.geometry.coordinates,
 	zoom: 18,
 });
 
 new mapboxgl.Marker()
-	.setLngLat(locations.geometry.coordinates)
+	.setLngLat(deviceLocation.geometry.coordinates)
 	.setPopup(
 		new mapboxgl.Popup({ offset: 25 }).setHTML(
-			`<h3>${locations.title}</h3><p>${locations.location}</p>`
+			`<h3>${deviceLocation.title}</h3><p>${deviceLocation.location}</p>`
 		)
 	)
 	.addTo(map);

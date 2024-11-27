@@ -1,75 +1,149 @@
-<% layout('layouts/boilerplate') %>
-<link rel="stylesheet" href="/stylesheets/stars.css" />
+<%- layout('layouts/boilerplate') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
-<div class="row">
-	<div class="col-6">
-		<div id="locationCarousel" class="carousel slide">
-			<div class="carousel-inner">
-				<% location.images.forEach((image, i) =>{ %>
-				<div class="carousel-item <%= i === 0 ? 'active' : '' %>">
-					<img
-						src="<%= image.url %>"
-						class="d-block w-100"
-						crossorigin="anonymous" />
-				</div>
-				<% }) %>
-			</div>
-			<% if(location.images.length > 1) {%>
-			<button
-				class="carousel-control-prev"
-				type="button"
-				data-bs-target="#locationCarousel"
-				data-bs-slide="prev">
-				<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-				<span class="visually-hidden">Previous</span>
-			</button>
-			<button
-				class="carousel-control-next"
-				type="button"
-				data-bs-target="#locationCarousel"
-				data-bs-slide="next">
-				<span class="carousel-control-next-icon" aria-hidden="true"></span>
-				<span class="visually-hidden">Next</span>
-			</button>
-			<% } %>
-		</div>
+<div class="device-show-page">
+    <div class="page-header animate__animated animate__fadeIn">
+        <div class="header-content">
+            <h1 class="page-title">Device Details</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/sfas">Devices</a></li>
+                    <li class="breadcrumb-item active"><%= location.title %></li>
+                </ol>
+            </nav>
+        </div>
+    </div>
 
-		<div class="card mb-3">
-			<div class="card-body">
-				<h5 class="card-title"><%= location.title %></h5>
-				<p class="card-text"><%= location.description %></p>
-			</div>
-			<ul class="list-group list-group-flush">
-				<li class="list-group-item text-muted"><%= location.location %></li>
-				<li class="list-group-item">
-					Owned By: <%= location.owner.username %>
-				</li>
-			</ul>
-			<% if( currentUser && currentUser.isAdmin) {%>
-			<div class="card-body">
-				<a class="card-link btn btn-info" href="/sfas/<%= location._id  %>/edit"
-					>Edit Device</a
-				>
-				<form
-					class="d-inline"
-					action="/sfas/<%= location._id%>?_method=DELETE"
-					method="post">
-					<button class="btn btn-danger card-link">Delete Device</button>
-				</form>
-			</div>
-			<% } %>
-			<div class="card-footer text-muted">
-				<a href="/sfas">All Devices</a>
-			</div>
-		</div>
-	</div>
-	<div class="col-6">
-		<div id="map" class="h-100"></div>
-	</div>
+    <div class="device-show-container">
+        <div class="device-grid">
+            <!-- Main Content Section -->
+            <div class="device-details-section animate__animated animate__fadeInUp">
+                <!-- Image Carousel -->
+                <div class="device-carousel-card">
+                    <div id="locationCarousel" class="carousel slide">
+                        <div class="carousel-inner">
+                            <% location.images.forEach((image, i) =>{ %>
+                            <div class="carousel-item <%= i === 0 ? 'active' : '' %>">
+                                <div class="carousel-image-container">
+                                    <img src="<%= image.url %>" class="carousel-image" crossorigin="anonymous" alt="Device Image" />
+                                </div>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% if(location.images.length > 1) { %>
+                        <button class="carousel-nav carousel-prev" type="button" data-bs-target="#locationCarousel" data-bs-slide="prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-nav carousel-next" type="button" data-bs-target="#locationCarousel" data-bs-slide="next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div class="carousel-indicators custom-indicators">
+                            <% location.images.forEach((_, i) =>{ %>
+                            <button type="button" data-bs-target="#locationCarousel" data-bs-slide-to="<%= i %>" 
+                                    class="custom-indicator <%= i === 0 ? 'active' : '' %>"
+                                    aria-current="<%= i === 0 ? 'true' : 'false' %>" 
+                                    aria-label="Slide <%= i + 1 %>"></button>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Device Information -->
+                <div class="device-info-card">
+                    <div class="card-header">
+                        <h2 class="device-title"><%= location.title %></h2>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-info-circle"></i>
+                            Description
+                        </h3>
+                        <p class="device-description"><%= location.description %></p>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-list"></i>
+                            Details
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Location</span>
+                                    <span class="info-value"><%= location.location %></span>
+                                </div>
+                            </div>
+                            <div class="info-card" style="animation-delay: 100ms">
+                                <div class="info-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Owner</span>
+                                    <span class="info-value"><%= location.owner.username %></span>
+                                </div>
+                            </div>
+                            <div class="info-card" style="animation-delay: 200ms">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Last Updated</span>
+                                    <span class="info-value">Today</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <% if(currentUser && currentUser.isAdmin) { %>
+                    <div class="action-section">
+                        <div class="action-buttons">
+                            <a class="action-btn edit-btn" href="/sfas/<%= location._id %>/edit">
+                                <i class="fas fa-edit"></i>
+                                Edit Device
+                            </a>
+                            <form class="delete-form" action="/sfas/<%= location._id %>?_method=DELETE" method="post">
+                                <button class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                    Delete Device
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section animate__animated animate__fadeInRight">
+                <div class="map-card">
+                    <div class="card-header">
+                        <h3 class="section-title">
+                            <i class="fas fa-map-marked-alt"></i>
+                            Location Map
+                        </h3>
+                    </div>
+                    <div class="map-wrapper">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div class="back-link-card">
+                    <a href="/sfas" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to All Devices
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-	const mapToken = '<%-process.env.MAPBOX_TOKEN%>';
-	const locations = <%- JSON.stringify(location) %>
+    const deviceLocation = <%- JSON.stringify(location) %>;
 </script>
 <script src="/javascripts/showPageMap.js"></script>

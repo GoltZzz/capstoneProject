@@ -1,0 +1,186 @@
+<!-- Sidebar -->
+<div class="sidebar-wrapper">
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-wrapper">
+                <i class="fas fa-shield-alt"></i>
+                <span>S.F.A.S.</span>
+            </div>
+            <button id="sidebarCollapse" class="btn d-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="user-profile">
+            <% if(typeof currentUser !== 'undefined' && currentUser) { %>
+                <div class="user-avatar">
+                    <% if (currentUser.avatars && currentUser.avatars.length > 0 && currentUser.avatars[0].url) { %>
+                        <img src="<%= currentUser.avatars[0].url %>" alt="User Avatar">
+                    <% } else { %>
+                        <i class="fas fa-user-circle"></i>
+                    <% } %>
+                </div>
+                <div class="user-info">
+                    <h6><%= currentUser.username %></h6>
+                    <span class="user-role"><%= currentUser.isAdmin ? 'Administrator' : 'User' %></span>
+                </div>
+            <% } %>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li class="<%= typeof path !== 'undefined' && path === '/' ? 'active' : '' %>">
+                <a href="/">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="<%= typeof path !== 'undefined' && path === '/sfas' ? 'active' : '' %>">
+                <a href="/sfas">
+                    <i class="fas fa-laptop"></i>
+                    <span>Devices</span>
+                </a>
+            </li>
+            <li class="<%= typeof path !== 'undefined' && path === '/sfas/new' ? 'active' : '' %>">
+                <a href="/sfas/new">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Device</span>
+                </a>
+            </li>
+            
+            <% if (typeof currentUser !== 'undefined' && currentUser && !currentUser.isAdmin) { %>
+                <li class="<%= typeof path !== 'undefined' && path === '/contacts' ? 'active' : '' %>">
+                    <a href="/contacts">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email Report</span>
+                    </a>
+                </li>
+            <% } %>
+            
+            <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.isAdmin) { %>
+                <li class="sidebar-header">Admin Panel</li>
+                <li class="<%= typeof path !== 'undefined' && path === '/register' ? 'active' : '' %>">
+                    <a href="/register">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add Client</span>
+                    </a>
+                </li>
+                <li class="<%= typeof path !== 'undefined' && path === '/admin/users' ? 'active' : '' %>">
+                    <a href="/admin/users">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="notification-toggle" onclick="toggleNotificationModal(event)">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        <% if (typeof notifications !== 'undefined' && notifications && notifications.filter(n => !n.isRead).length > 0) { %>
+                            <span class="badge bg-danger notification-badge"><%= notifications.filter(n => !n.isRead).length %></span>
+                        <% } %>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+
+        <div class="sidebar-footer">
+            <% if(typeof currentUser !== 'undefined' && currentUser) { %>
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            <% } %>
+        </div>
+    </nav>
+</div>
+
+<!-- Notification Modal -->
+<div id="notificationModal" class="notification-modal">
+    <div class="notification-modal-content">
+        <div class="notification-modal-header">
+            <div class="header-content">
+                <h5 class="modal-title"><i class="fas fa-bell"></i> Report Updates</h5>
+                <p class="modal-subtitle">Stay informed about new reports and updates</p>
+            </div>
+            <button type="button" class="close-modal" onclick="toggleNotificationModal(event)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notification-modal-body">
+            <% if (typeof notifications !== 'undefined' && notifications && notifications.length > 0) { %>
+                <% notifications.forEach(function(notification) { %>
+                    <div class="notification-item <%= notification.isRead ? 'notification-read' : '' %>">
+                        <div class="notification-main">
+                            <div class="notification-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-meta">
+                                    <div class="notification-title"><%= notification.name %></div>
+                                    <span class="notification-time"><%= new Date(notification.timestamp).toLocaleString() %></span>
+                                </div>
+                                <div class="notification-text">has sent a new report</div>
+                                <div class="notification-actions">
+                                    <a href="/notifications/<%= notification._id %>" class="btn-action view-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <form action="/notifications/<%= notification._id %>?_method=DELETE" method="POST" class="d-inline">
+                                        <button type="submit" class="btn-action delete-btn" title="Delete notification">
+                                            <i class="fas fa-trash-alt"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="notification-empty">
+                    <i class="fas fa-clipboard-check"></i>
+                    <p>You're All Caught Up!</p>
+                    <span class="empty-subtitle">We'll notify you when there's a new report</span>
+                </div>
+            <% } %>
+        </div>
+        <div class="notification-modal-footer">
+            <div class="footer-content">
+                <p class="footer-text">S.F.A.S. Notification Center</p>
+                <small class="footer-subtitle">Stay connected with your reports</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay -->
+<div class="sidebar-overlay"></div>
+
+<script>
+    // Sidebar collapse functionality
+    document.getElementById('sidebarCollapse').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.querySelector('.sidebar-overlay').classList.toggle('active');
+    });
+
+    // Notification modal functionality
+    function toggleNotificationModal(event) {
+        event.preventDefault();
+        const modal = document.getElementById('notificationModal');
+        modal.classList.toggle('show');
+        
+        // Close modal when clicking outside
+        if (modal.classList.contains('show')) {
+            document.addEventListener('click', closeModalOutside);
+        } else {
+            document.removeEventListener('click', closeModalOutside);
+        }
+    }
+
+    function closeModalOutside(event) {
+        const modal = document.getElementById('notificationModal');
+        const modalContent = modal.querySelector('.notification-modal-content');
+        
+        if (!modalContent.contains(event.target) && !event.target.closest('.notification-toggle')) {
+            modal.classList.remove('show');
+            document.removeEventListener('click', closeModalOutside);
+        }
+    }
+</script>

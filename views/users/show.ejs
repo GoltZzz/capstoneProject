@@ -1,49 +1,442 @@
 <%- layout('layouts/boilerplate') %>
 
-<div class="container">
-	<div class="row">
-		<div class="col-md-6">
-			<h2>User Details</h2>
-			<div class="card shadow">
-				<div class="card-body">
-					<% if (user.avatars && user.avatars.length > 0 && user.avatars[0] &&
-					user.avatars[0].url) { %>
-					<img src="<%= user.avatars[0].url %>" class="img-fluid" />
-					<% } else { %> No Avatar <% } %>
-					<ul class="list-group list-group-flush">
-						<li class="list-group-item">Username: <%= user.username %></li>
-						<li class="list-group-item">Email: <%= user.email %></li>
-						<% if (user.isAdmin) { %>
-						<li class="list-group-item">Admin: Yes</li>
-						<% } else { %>
-						<li class="list-group-item">Admin: No</li>
-						<% } %>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6">
-			<h2>Device Locations</h2>
-			<% if (user.locations.length === 0) { %>
-			<div class="alert alert-info">No device locations found.</div>
-			<% } else { %>
-			<div class="row">
-				<% user.locations.forEach(location => { %>
-				<div class="col-md-6">
-					<div class="card shadow mb-3">
-						<div class="card-body">
-							<h5 class="card-title"><%= location.title %></h5>
-							<p class="card-text">Location: <%= location.location %></p>
-							<% if (location.images.length > 0) { %>
-							<img src="<%= location.images[0].url %>" class="img-fluid" />
-							<% } %>
-							<p class="card-text">Owned By: <%= user.username %></p>
-						</div>
-					</div>
-				</div>
-				<% }); %>
-			</div>
-			<% } %>
-		</div>
-	</div>
+<style>
+    /* Animation Keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .user-page {
+        --primary-color: #1a2a6c;
+        --secondary-color: #b21f1f;
+        --accent-color: #fdbb2d;
+        --bg-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .user-page .page-header {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease-out forwards;
+        background: var(--bg-gradient);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        color: white;
+        border-radius: 0 0 20px 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .user-page .breadcrumb-nav {
+        opacity: 0;
+        animation: slideInLeft 0.6s ease-out 0.2s forwards;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 1rem;
+    }
+
+    .user-page .page-title {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease-out 0.3s forwards;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        text-align: center;
+    }
+
+    .user-page .breadcrumb {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        display: flex;
+        align-items: center;
+    }
+
+    .user-page .breadcrumb-item {
+        display: flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .user-page .breadcrumb-item a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .user-page .breadcrumb-item a:hover {
+        color: var(--accent-color);
+    }
+
+    .user-page .breadcrumb-item.active {
+        color: var(--accent-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .user-page .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0.5rem;
+    }
+
+    .user-page .profile-card {
+        opacity: 0;
+        animation: slideInLeft 0.6s ease-out 0.4s forwards;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .user-page .profile-header {
+        background: var(--bg-gradient);
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .user-page .profile-avatar {
+        opacity: 0;
+        animation: scaleIn 0.6s ease-out 0.6s forwards;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+
+    .user-page .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-page .profile-avatar i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+    }
+
+    .user-page .profile-content {
+        padding: 2rem;
+    }
+
+    .user-page .profile-item {
+        opacity: 0;
+        animation: slideInLeft 0.5s ease-out forwards;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 10px;
+        background: #f8f9fa;
+        margin-bottom: 1rem;
+        transition: var(--transition);
+    }
+
+    /* Stagger profile items */
+    .user-page .profile-item:nth-child(1) { animation-delay: 0.7s; }
+    .user-page .profile-item:nth-child(2) { animation-delay: 0.8s; }
+    .user-page .profile-item:nth-child(3) { animation-delay: 0.9s; }
+    .user-page .profile-item:nth-child(4) { animation-delay: 1.0s; }
+
+    .user-page .profile-item i {
+        width: 30px;
+        color: var(--primary-color);
+        margin-right: 1rem;
+    }
+
+    .user-page .locations-container {
+        opacity: 0;
+        animation: slideInRight 0.6s ease-out 0.4s forwards;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        height: 100%;
+    }
+
+    .user-page .locations-header {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease-out 0.5s forwards;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .user-page .locations-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .user-page .locations-count {
+        background: var(--bg-gradient);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .user-page .locations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .user-page .location-card {
+        opacity: 0;
+        animation: scaleIn 0.5s ease-out forwards;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: var(--transition);
+        border: 1px solid #e9ecef;
+    }
+
+    /* Stagger location cards */
+    .user-page .location-card:nth-child(1) { animation-delay: 0.8s; }
+    .user-page .location-card:nth-child(2) { animation-delay: 0.9s; }
+    .user-page .location-card:nth-child(3) { animation-delay: 1.0s; }
+    .user-page .location-card:nth-child(4) { animation-delay: 1.1s; }
+    .user-page .location-card:nth-child(5) { animation-delay: 1.2s; }
+
+    .user-page .location-image {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+    }
+
+    .user-page .location-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .user-page .location-card:hover .location-image img {
+        transform: scale(1.1);
+    }
+
+    .user-page .location-details {
+        padding: 1.5rem;
+    }
+
+    .user-page .location-title {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .user-page .location-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .user-page .location-info i {
+        color: var(--primary-color);
+        width: 16px;
+    }
+
+    .user-page .no-locations {
+        opacity: 0;
+        animation: scaleIn 0.6s ease-out 0.6s forwards;
+        text-align: center;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        color: #6c757d;
+    }
+
+    .user-page .no-locations i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .user-page .page-header {
+            padding: 1.5rem 0;
+        }
+        
+        .user-page .profile-card,
+        .user-page .locations-container {
+            margin-bottom: 1.5rem;
+        }
+    }
+</style>
+
+<div class="user-page">
+    <div class="page-header">
+        <div class="container">
+            <div class="breadcrumb-nav">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/">
+                                <i class="fas fa-home"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/users">
+                                <i class="fas fa-shield-alt"></i>
+                                Admin Dashboard
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <i class="fas fa-user"></i>
+                            User Details
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            <h1 class="page-title">User Profile: <%= user.username %></h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <% if (user.avatars && user.avatars.length > 0 && user.avatars[0] && user.avatars[0].url) { %>
+                                <img src="<%= user.avatars[0].url %>" alt="<%= user.username %>'s avatar" />
+                            <% } else { %>
+                                <i class="fas fa-user fa-3x"></i>
+                            <% } %>
+                        </div>
+                        <h3 class="mb-2"><%= user.username %></h3>
+                        <p class="mb-0 text-white-50"><%= user.email %></p>
+                    </div>
+                    <div class="profile-content">
+                        <div class="profile-item">
+                            <i class="fas fa-user-tag"></i>
+                            <span>Username: <%= user.username %></span>
+                        </div>
+                        <div class="profile-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>Email: <%= user.email %></span>
+                        </div>
+                        <div class="profile-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Role: <%= user.isAdmin ? 'Administrator' : 'Standard User' %></span>
+                        </div>
+                        <div class="profile-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Total Locations: <%= user.locations.length %></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="locations-container">
+                    <div class="locations-header">
+                        <h2 class="locations-title">Device Locations</h2>
+                        <span class="locations-count">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <%= user.locations.length %> Location<%= user.locations.length !== 1 ? 's' : '' %>
+                        </span>
+                    </div>
+
+                    <% if (user.locations.length === 0) { %>
+                        <div class="no-locations">
+                            <i class="fas fa-map-marked-alt d-block"></i>
+                            <h4>No Locations Found</h4>
+                            <p class="text-muted mb-0">This user hasn't added any device locations yet.</p>
+                        </div>
+                    <% } else { %>
+                        <div class="locations-grid">
+                            <% user.locations.forEach(location => { %>
+                                <div class="location-card">
+                                    <div class="location-image">
+                                        <% if (location.images && location.images.length > 0) { %>
+                                            <img src="<%= location.images[0].url %>" alt="<%= location.title %>" />
+                                        <% } else { %>
+                                            <img src="https://via.placeholder.com/300x200?text=No+Image" alt="No image available" />
+                                        <% } %>
+                                    </div>
+                                    <div class="location-details">
+                                        <h5 class="location-title"><%= location.title %></h5>
+                                        <div class="location-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span><%= location.location %></span>
+                                        </div>
+                                        <div class="location-info">
+                                            <i class="fas fa-user"></i>
+                                            <span>Owned by <%= user.username %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

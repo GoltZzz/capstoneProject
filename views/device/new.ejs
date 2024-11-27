@@ -1,64 +1,235 @@
-<% layout('layouts/boilerplate') %>
+<%- layout('layouts/boilerplate') %>
 
-<div class="row">
-	<h1 class="text-center">Add a Device Location</h1>
-	<div class="col-md-6 offset-md-3">
-		<form
-			action="/sfas"
-			method="post"
-			class="validated-form"
-			novalidate
-			enctype="multipart/form-data">
-			<div class="mb-3">
-				<label for="title" class="form-label">Name of Establishment:</label>
-				<input
-					class="form-control"
-					type="text"
-					name="title"
-					id="title"
-					required />
-				<div class="valid-feedback">Looks good!</div>
-				<div class="invalid-feedback">Please provide a title.</div>
-			</div>
-			<div class="mb-3">
-				<label for="location" class="form-label">Address:</label>
-				<input
-					class="form-control"
-					type="text"
-					name="location"
-					id="location"
-					placeholder="Use a Street Address example: 123 Street"
-					required />
-				<div class="valid-feedback">Looks good!</div>
-				<div class="invalid-feedback">Please provide a location.</div>
-			</div>
-			<div class="mb-3">
-				<label for="description" class="form-label">description:</label>
-				<textarea
-					class="form-control"
-					name="description"
-					id="description"
-					placeholder="Please be Specific!"
-					required></textarea>
-				<div class="valid-feedback">Looks good!</div>
-				<div class="invalid-feedback">Please provide a description.</div>
-			</div>
-			<div class="mb-3">
-				<label for="image" class="form-label">Upload Images</label>
-				<input
-					class="form-control"
-					type="file"
-					name="image"
-					id="image"
-					multiple
-					required />
-				<div class="valid-feedback">Looks good!</div>
-				<div class="invalid-feedback">Please upload an image.</div>
-			</div>
-			<div class="mb-3">
-				<button class="btn btn-success">Add Device</button>
-			</div>
-		</form>
-		<a href="/sfas">Cancel</a>
-	</div>
+<div class="auth-container d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="auth-card shadow-lg rounded-3">
+                    <div class="auth-header text-center mb-4">
+                        <div class="auth-logo mb-3">
+                            <i class="fas fa-plus-circle fa-3x text-primary"></i>
+                        </div>
+                        <h2 class="fw-bold">Add New Device</h2>
+                        <p class="text-muted">Fill in the device details below</p>
+                    </div>
+
+                    <form action="/sfas" method="post" class="auth-form validated-form" novalidate enctype="multipart/form-data">
+                        <div class="auth-input-group">
+                            <input type="text" class="auth-input" id="title" name="title" required placeholder=" ">
+                            <i class="fas fa-building"></i>
+                            <label for="title">Name of Establishment</label>
+                            <div class="valid-feedback">
+                                <i class="fas fa-check-circle me-1"></i>Looks good!
+                            </div>
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please provide an establishment name.
+                            </div>
+                        </div>
+
+                        <div class="auth-input-group mb-4">
+                            <label class="form-label"></label>
+                            <div id="location-map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+                            <input type="hidden" id="lng" name="lng" required>
+                            <input type="hidden" id="lat" name="lat" required>
+                            <input type="hidden" class="auth-input" id="location" name="location" required>
+                            <div class="valid-feedback">
+                                <i class="fas fa-check-circle me-1"></i>Location selected!
+                            </div>
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please select a location on the map.
+                            </div>
+                            <small class="text-muted">
+                                Click on the map to select location or use the locate button to find your current position
+                            </small>
+                        </div>
+
+                        <div class="auth-input-group">
+                            <textarea class="auth-input" id="description" name="description" required placeholder=" " rows="4"></textarea>
+                            <i class="fas fa-info-circle"></i>
+                            <label for="description">Description</label>
+                            <div class="valid-feedback">
+                                <i class="fas fa-check-circle me-1"></i>Looks good!
+                            </div>
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please provide a description.
+                            </div>
+                            <small class="text-muted">
+                                Include specific details about the device location and condition
+                            </small>
+                        </div>
+
+                        <div class="auth-input-group mb-4">
+                            <div class="custom-file-upload">
+                                <input type="file" class="auth-input" id="image" name="image" multiple required accept="image/*">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">
+                                    <strong>Click to upload</strong> or drag and drop
+                                </div>
+                                <div class="upload-hint">
+                                    Supported formats: JPG, PNG, GIF (max. 5MB each)
+                                </div>
+                                <div class="preview-container" id="preview"></div>
+                            </div>
+                            <div class="valid-feedback">
+                                <i class="fas fa-check-circle me-1"></i>Images selected!
+                            </div>
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please select at least one image.
+                            </div>
+                        </div>
+
+                        <div class="button-group d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button class="auth-btn flex-grow-1" type="submit">
+                                <i class="fas fa-plus-circle me-2"></i>Add Device
+                            </button>
+                            <a href="/sfas" class="auth-btn secondary flex-grow-1">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    #location-map {
+        width: 100%;
+        height: 300px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .mapboxgl-canvas {
+        border-radius: 8px;
+    }
+
+    .mapboxgl-ctrl-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        border-radius: 8px !important;
+    }
+
+    .mapboxgl-ctrl-group button {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .mapboxgl-ctrl-group button:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    .button-group {
+        margin-top: 2rem;
+    }
+
+    .button-group .auth-btn {
+        min-width: 160px;
+        padding: 0.8rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .button-group .auth-btn:not(:last-child) {
+        margin-right: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .button-group {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .button-group .auth-btn {
+            width: 100%;
+            margin-right: 0 !important;
+        }
+    }
+</style>
+
+<script>
+    // Enhanced image preview functionality
+    document.getElementById('image').addEventListener('change', function(e) {
+        const preview = document.querySelector('.preview-container');
+        preview.innerHTML = '';
+        
+        [...e.target.files].forEach(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'preview-image';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    wrapper.remove();
+                    // Check if there are any previews left
+                    if (preview.children.length === 0) {
+                        document.getElementById('image').value = '';
+                    }
+                };
+                
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.custom-file-upload');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.style.borderColor = 'var(--accent-color)';
+        dropZone.style.background = 'rgba(253, 187, 45, 0.05)';
+    }
+
+    function unhighlight(e) {
+        dropZone.style.borderColor = 'var(--primary-color)';
+        dropZone.style.background = 'var(--bg-light)';
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        document.getElementById('image').files = files;
+        
+        // Trigger change event
+        const event = new Event('change');
+        document.getElementById('image').dispatchEvent(event);
+    }
+</script>
+
+<!-- Include the location picker script -->
+<script src="/javascripts/locationPicker.js"></script>

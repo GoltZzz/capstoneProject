@@ -24,7 +24,7 @@ const seedDB = async () => {
 	for (let i = 0; i < 10; i++) {
 		const random5 = Math.floor(Math.random() * 5);
 		const location = new Location({
-			owner: "67459df3c9e8a2be4746c4af",
+			owner: "6746cabc67410b1754f924d9",
 			location: `${cities[random5].city}, ${cities[random5].island}`,
 			title: `${sample(descriptors)} ${sample(places)}`,
 			geometry: {

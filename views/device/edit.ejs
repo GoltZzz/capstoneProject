@@ -1,75 +1,631 @@
-<% layout('layouts/boilerplate') %>
+<%- layout('layouts/boilerplate') %>
 
-<div class="row">
-	<h1 class="text-center">Edit Device</h1>
-	<div class="col-md-6 offset-md-3">
-		<form
-			action="/sfas/<%=location._id%>?_method=PUT"
-			method="post"
-			class="validated-form"
-			novalidate
-			enctype="multipart/form-data">
-			<div class="mb-3">
-				<label for="title" class="form-label">Title:</label>
-				<input
-					class="form-control"
-					type="text"
-					name="title"
-					id="title"
-					value="<%= location.title  %>"
-					required />
-				<div class="valid-feedback">Looks good!</div>
-			</div>
-			<div class="mb-3">
-				<label for="location" class="form-label">Address:</label>
-				<input
-					class="form-control"
-					type="text"
-					name="location"
-					id="location"
-					value="<%= location.location  %>"
-					required />
-				<div class="valid-feedback">Looks good!</div>
-			</div>
-			<div class="mb-3">
-				<label for="description" class="form-label">description:</label>
-				<textarea
-					class="form-control"
-					name="description"
-					id="description"
-					required>
-<%= location.description %></textarea
-				>
-				<div class="valid-feedback">Looks good!</div>
-			</div>
-			<div class="mb-3">
-				<label for="image" class="form-label">Add More Images</label>
-				<input
-					class="form-control"
-					type="file"
-					name="image"
-					id="image"
-					multiple />
-				<div class="valid-feedback">Looks good!</div>
-				<div class="invalid-feedback">Please upload an image.</div>
-			</div>
-			<div class="mb-3">
-				<% location.images.forEach(function(image, i){ %>
-				<img src="<%= image.thumbnail %>" class="img-thumbnail" />
-				<div class="form-check-inline">
-					<input
-						type="checkbox"
-						name="deleteImages[]"
-						id="image-<%= i %>"
-						value="<%= image.filename %>" />
-				</div>
-				<label for="image-<%= i %>">Delete?</label>
-				<% })%>
-			</div>
-			<div class="mb-3">
-				<button class="btn btn-info">Edit Device</button>
-			</div>
-		</form>
-		<a href="/sfas/<%= location._id  %>">Cancel</a>
-	</div>
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="auth-card shadow-lg">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h2>Edit Device</h2>
+                    </div>
+
+                    <form action="/sfas/<%=location._id%>?_method=PUT" 
+                          method="post" 
+                          class="auth-form validated-form" 
+                          novalidate 
+                          enctype="multipart/form-data">
+                        
+                        <!-- Title -->
+                        <div class="auth-input-group">
+                            <input type="text" 
+                                   class="auth-input" 
+                                   name="title" 
+                                   id="title" 
+                                   value="<%= location.title %>" 
+                                   required 
+                                   placeholder=" ">
+                            <i class="fas fa-tag"></i>
+                            <label for="title">Name of Establishment</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter a device title.</div>
+                        </div>
+
+                        <!-- Location -->
+                       <!-- Location Map -->
+<div class="auth-input-group mb-4">
+    <label class="form-label"></label>
+    <div id="location-map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+    <input type="hidden" id="lng" name="lng" value="<%= location.geometry.coordinates[0] %>" required>
+    <input type="hidden" id="lat" name="lat" value="<%= location.geometry.coordinates[1] %>" required>
+    <input type="hidden" class="auth-input" id="location" name="location" value="<%= location.location %>" required>
+    <div class="valid-feedback">Location selected!</div>
+    <div class="invalid-feedback">Please select a location on the map.</div>
+    <small class="text-muted">
+       Click on the map to update location or use the locate button to find your current position
+    </small>
 </div>
+
+                        <!-- Description -->
+                        <div class="auth-input-group">
+                            <textarea class="auth-input" 
+                                      name="description" 
+                                      id="description" 
+                                      rows="4" 
+                                      required 
+                                      placeholder=" "><%= location.description.trim() %></textarea>
+                            <i class="fas fa-align-left"></i>
+                            <label for="description">Description</label>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter a description.</div>
+                        </div>
+
+                        <!-- New Images -->
+                        <div class="auth-input-group file-upload-section">
+                            <div class="file-upload-container">
+                                <input type="file" 
+                                       class="auth-input file-input" 
+                                       name="image" 
+                                       id="image" 
+                                       multiple>
+                                <div class="file-upload-content">
+                                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                    <h4>Drag & Drop Images</h4>
+                                    <p>or click to browse</p>
+                                    <span class="file-info">Supports: JPG, PNG, GIF (Max: 5MB)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Images -->
+                        <div class="current-images-section">
+                            <div class="section-header">
+                                <h3 class="images-title"><i class="fas fa-images"></i> Current Images</h3>
+                                <p class="images-subtitle">Select images to remove them</p>
+                            </div>
+                            <div class="images-grid">
+                                <% location.images.forEach(function(image, i){ %>
+                                <div class="image-card-wrapper">
+                                    <div class="image-card">
+                                        <div class="image-wrapper">
+                                            <img src="<%= image.url %>" alt="Device image"/>
+                                            <div class="image-overlay">
+                                                <div class="delete-checkbox">
+                                                    <input type="checkbox" 
+                                                           name="deleteImages[]" 
+                                                           id="image-<%= i %>" 
+                                                           value="<%= image.filename %>">
+                                                    <label for="image-<%= i %>">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                        <span>Remove</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% })%>
+                            </div>
+                        </div>
+
+                        <div class="auth-buttons">
+                            <a href="/sfas/<%= location._id %>" class="auth-btn" style="text-align: center;">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button class="auth-btn" type="submit">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Color Palette */
+:root {
+    --gradient-start: #1a2a6c;
+    --gradient-middle: #b21f1f;
+    --gradient-end: #fdbb2d;
+    --form-bg: rgba(255, 255, 255, 0.95);
+    --input-bg: #f8f9fa;
+    --input-border: #e2e8f0;
+    --input-focus: #4a5568;
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    --success: #48bb78;
+    --danger: #f56565;
+}
+
+.auth-container {
+    min-height: calc(100vh - 56px);
+    padding: 2rem 0;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle), var(--gradient-end));
+    background-size: 200% 200%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.auth-card {
+    background: var(--form-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-header {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle));
+    padding: 2rem;
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+    color: white;
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: var(--gradient-start);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.auth-input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid var(--input-border);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: var(--input-bg);
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+}
+
+.auth-input:focus {
+    border-color: var(--gradient-start);
+    box-shadow: 0 0 0 4px rgba(26, 42, 108, 0.1);
+    background: white;
+}
+
+.auth-input-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.auth-input-group:focus-within i {
+    color: var(--gradient-start);
+}
+
+.auth-input-group label {
+    position: absolute;
+    left: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    background: transparent;
+    padding: 0 0.5rem;
+}
+
+.auth-input:focus ~ label,
+.auth-input:not(:placeholder-shown) ~ label {
+    top: 0;
+    left: 1rem;
+    transform: translateY(-50%) scale(0.85);
+    background: white;
+    color: var(--gradient-start);
+}
+
+.current-images-section {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--input-border);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.images-title {
+    color: var(--gradient-start);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.images-title::before {
+    color: var(--gradient-middle);
+}
+
+.image-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.delete-checkbox label {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.delete-checkbox label:hover {
+    background: rgba(var(--danger), 0.8);
+}
+
+.delete-checkbox input:checked + label {
+    background: var(--danger);
+}
+
+.auth-btn {
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    color: white;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.auth-btn.btn-secondary {
+    background: transparent;
+    border: 2px solid var(--gradient-start);
+    color: var(--gradient-start);
+}
+
+.auth-btn.btn-secondary:hover {
+    background: var(--gradient-start);
+    color: white;
+}
+
+.valid-feedback {
+    color: var(--success);
+    font-size: 0.875rem;
+    margin-left: 3rem;
+    margin-top: 0.25rem;
+}
+
+.invalid-feedback {
+    color: var(--danger);
+    font-size: 0.875rem;
+    margin-left: 3rem;
+    margin-top: 0.25rem;
+}
+
+textarea.auth-input {
+    min-height: 120px;
+    resize: vertical;
+}
+
+textarea.auth-input ~ label {
+    top: 1.5rem;
+}
+
+textarea.auth-input:focus ~ label,
+textarea.auth-input:not(:placeholder-shown) ~ label {
+    top: 0;
+}
+
+.file-input {
+    padding-top: 2.5rem;
+}
+
+.auth-input-group .form-text {
+    color: var(--text-muted);
+    margin-left: 3rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--input-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gradient-start);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gradient-middle);
+}
+
+/* File Upload Styling */
+.file-upload-section {
+    margin: 2rem 0;
+}
+
+.file-upload-container {
+    border: 2px dashed var(--input-border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--input-bg);
+    position: relative;
+}
+
+.file-upload-container.highlight {
+    border-color: var(--gradient-start);
+    background-color: rgba(var(--gradient-start), 0.1);
+}
+
+.file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-content {
+    pointer-events: none;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    color: var(--gradient-start);
+    margin-bottom: 1rem;
+}
+
+.file-info {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Current Images Section */
+.current-images-section {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--input-border);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--input-border);
+}
+
+.images-title {
+    color: var(--gradient-start);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.images-subtitle {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.image-card-wrapper {
+    aspect-ratio: 1;
+}
+
+.image-card {
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.image-card:hover .image-overlay {
+    opacity: 1;
+}
+
+.delete-checkbox {
+    text-align: center;
+}
+
+.delete-checkbox input {
+    display: none;
+}
+
+.delete-checkbox label {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.delete-checkbox label:hover {
+    background: rgba(var(--danger), 0.8);
+    transform: scale(1.05);
+}
+
+.delete-checkbox input:checked + label {
+    background: var(--danger);
+}
+
+.image-card:hover img {
+    transform: scale(1.1);
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileUploadContainer = document.querySelector('.file-upload-container');
+        const fileInput = document.getElementById('image');
+        const fileUploadContent = document.querySelector('.file-upload-content');
+
+        // Prevent double triggering of file dialog
+        fileInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Handle click on the container
+        fileUploadContainer.addEventListener('click', function(e) {
+            if (e.target === fileUploadContainer || e.target.closest('.file-upload-content')) {
+                fileInput.click();
+            }
+        });
+
+        // Handle drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            fileUploadContainer.classList.add('highlight');
+        }
+
+        function unhighlight(e) {
+            fileUploadContainer.classList.remove('highlight');
+        }
+
+        // Handle file drop
+        fileUploadContainer.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            updateFileInfo(files);
+        }
+
+        // Handle file selection via click
+        fileInput.addEventListener('change', function(e) {
+            updateFileInfo(this.files);
+        });
+
+        function updateFileInfo(files) {
+            if (files.length > 0) {
+                const fileCount = files.length;
+                const fileText = fileCount === 1 ? 'file' : 'files';
+                fileUploadContent.innerHTML = `
+                    <i class="fas fa-check-circle text-success"></i>
+                    <h4>${fileCount} ${fileText} selected</h4>
+                    <p>Click submit to upload</p>
+                `;
+            } else {
+                fileUploadContent.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h4>Drag & Drop Images</h4>
+                    <p>or click to browse</p>
+                    <span class="file-info">Supports: JPG, PNG, GIF (Max: 5MB)</span>
+                `;
+            }
+        }
+    });
+</script>
+
+<!-- Initialize map with existing location -->
+<script>
+    const existingLng = <%= location.geometry.coordinates[0] %>;
+    const existingLat = <%= location.geometry.coordinates[1] %>;
+</script>
+<script src="/javascripts/editLocationPicker.js"></script>

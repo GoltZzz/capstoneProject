@@ -8,31 +8,234 @@
 			rel="stylesheet"
 			href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
 			crossorigin="anonymous" />
-		<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
-		<link
-			href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css"
-			rel="stylesheet" />
+		<link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+		<script>
+			const mapToken = '<%= process.env.MAPBOX_TOKEN %>';
+			// Make currentUser data available to client-side scripts
+			window.currentUser = <% if(typeof currentUser !== 'undefined' && currentUser) { %>
+				{
+					id: '<%= currentUser._id %>',
+					username: '<%= currentUser.username %>',
+					isAdmin: <%= currentUser.isAdmin %>,
+				}
+			<% } else { %>
+				null
+			<% } %>;
+		</script>
 		<link rel="stylesheet" href="/stylesheets/app.css" />
 		<script
 			src="https://kit.fontawesome.com/f5eb818237.js"
 			crossorigin="anonymous"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<style>
+			.auth-btn {
+				background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+				color: white;
+				border: none;
+				padding: 12px 24px;
+				border-radius: 8px;
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				width: 100%;
+				position: relative;
+				overflow: hidden;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				text-decoration: none;
+				display: inline-block;
+			}
+
+			.auth-btn:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+				color: white;
+				text-decoration: none;
+			}
+
+			.auth-btn:active {
+				transform: translateY(0);
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			}
+
+			.auth-btn::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: -100%;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(
+					120deg,
+					transparent,
+					rgba(255, 255, 255, 0.2),
+					transparent
+				);
+				transition: 0.5s;
+			}
+
+			.auth-btn:hover::before {
+				left: 100%;
+			}
+
+			/* Ensure consistent styling for anchor buttons */
+			a.auth-btn {
+				color: white !important;
+				text-decoration: none !important;
+			}
+
+			a.auth-btn:hover,
+			a.auth-btn:focus,
+			a.auth-btn:active {
+				color: white !important;
+				text-decoration: none !important;
+			}
+		</style>
 	</head>
-	<body class="d-flex flex-column vh-100">
-		<%- include('../partials/navbar.ejs') %>
-		<main class="container mt-5">
-			<%- include('../partials/flash')%> <%- body %>
-		</main>
-		<%- include('../partials/footer.ejs') %>
+	<body>
+		<div class="wrapper">
+			<%- include('../partials/sidebar.ejs') %>
+			
+			<div class="content-wrapper">
+				<main class="content">
+					<%- include('../partials/flash')%> 
+					<%- body %>
+				</main>
+				<%- include('../partials/footer.ejs') %>
+			</div>
+		</div>
 
 		<script
 			src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
 			integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
 			crossorigin="anonymous"></script>
-		<script
-			src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
-			integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
-			crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			// Notification sounds
+			const notificationSounds = {
+				default: new Audio('/sounds/notification.mp3'),
+				important: new Audio('/sounds/important.mp3'),
+				message: new Audio('/sounds/message.mp3')
+			};
 
+			// User preferences (load from localStorage or use defaults)
+			const userPreferences = JSON.parse(localStorage.getItem('notificationPreferences')) || {
+				sound: true,
+				soundType: 'default',
+				desktop: true,
+				grouping: true
+			};
+
+			// Save preferences function
+			function savePreferences(preferences) {
+				localStorage.setItem('notificationPreferences', JSON.stringify(preferences));
+				socket.emit('setPreferences', preferences);
+			}
+
+			const socket = io({
+				reconnection: true,
+				reconnectionAttempts: 5,
+				reconnectionDelay: 1000
+			});
+
+			socket.on('connect', () => {
+				console.log('Connected to server');
+				socket.emit('setPreferences', userPreferences);
+			});
+
+			socket.on('connect_error', (error) => {
+				console.error('Connection error:', error);
+			});
+
+			socket.on('reconnect_attempt', (attemptNumber) => {
+				console.log('Attempting to reconnect:', attemptNumber);
+			});
+
+			socket.on('reconnect_failed', () => {
+				console.error('Failed to reconnect to server');
+			});
+			
+			// Handle real-time notifications
+			socket.on('newNotification', (data) => {
+				// Update notification count
+				const countElement = document.querySelector('#notification-count');
+				if (countElement) {
+					const currentCount = parseInt(countElement.textContent) || 0;
+					countElement.textContent = currentCount + (data.count || 1);
+				}
+				
+				// Play sound if enabled
+				if (userPreferences.sound && data.sound) {
+					const sound = notificationSounds[data.sound] || notificationSounds.default;
+					sound.play().catch(error => console.error('Error playing sound:', error));
+				}
+
+				// Show desktop notification if enabled
+				if (userPreferences.desktop && 'Notification' in window && Notification.permission === 'granted') {
+					new Notification('New Notification', {
+						body: data.message,
+						icon: '/images/notification-icon.png'
+					});
+				}
+				
+				// Show toast notification
+				const toastElement = document.createElement('div');
+				toastElement.setAttribute('data-notification-id', data.notificationId);
+				const toast = new bootstrap.Toast(toastElement);
+				toastElement.innerHTML = `
+					<div class="toast-header">
+						<strong class="me-auto">${data.type || 'Notification'}</strong>
+						<small>${data.count ? data.count + ' notifications' : ''}</small>
+						<button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+					</div>
+					<div class="toast-body">
+						${data.message}
+					</div>
+				`;
+				document.body.appendChild(toastElement);
+				toast.show();
+			});
+
+			// Request desktop notification permission
+			if ('Notification' in window && Notification.permission === 'default') {
+				Notification.requestPermission();
+			}
+		</script>
+		<% if (currentUser) { %>
+		<script src="/javascripts/notifications.js"></script>
+		<% } %>
 		<script src="/javascripts/validateForms.js"></script>
+		<!-- <script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// Sidebar toggle
+				const sidebar = document.getElementById('sidebar');
+				const sidebarCollapse = document.getElementById('sidebarCollapse');
+				const overlay = document.querySelector('.sidebar-overlay');
+				const content = document.querySelector('.content-wrapper');
+
+				function toggleSidebar() {
+					sidebar.classList.toggle('active');
+					overlay.classList.toggle('active');
+					content.classList.toggle('active');
+				}
+
+				if (sidebarCollapse) {
+					sidebarCollapse.addEventListener('click', toggleSidebar);
+				}
+				if (overlay) {
+					overlay.addEventListener('click', toggleSidebar);
+				}
+
+				// Active link highlighting
+				const currentPath = window.location.pathname;
+				document.querySelectorAll('#sidebar .components li').forEach(li => {
+					const link = li.querySelector('a');
+					if (link && link.getAttribute('href') === currentPath) {
+						li.classList.add('active');
+					}
+				});
+			});
+		</script> -->
 	</body>
 </html>

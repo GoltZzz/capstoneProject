@@ -1,0 +1,79 @@
+<div class="notification-preferences" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h5>Notification Preferences</h5>
+        </div>
+        <div class="card-body">
+            <form id="notificationPreferencesForm">
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="soundEnabled" checked>
+                        <label class="form-check-label" for="soundEnabled">Enable Notification Sounds</label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Sound Type</label>
+                    <select class="form-select" id="soundType">
+                        <option value="default">Default</option>
+                        <option value="important">Important</option>
+                        <option value="message">Message</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="desktopEnabled" checked>
+                        <label class="form-check-label" for="desktopEnabled">Enable Desktop Notifications</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="groupingEnabled" checked>
+                        <label class="form-check-label" for="groupingEnabled">Group Similar Notifications</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('notificationPreferencesForm');
+        const prefs = JSON.parse(localStorage.getItem('notificationPreferences')) || {
+            sound: true,
+            soundType: 'default',
+            desktop: true,
+            grouping: true
+        };
+
+        // Initialize form with saved preferences
+        document.getElementById('soundEnabled').checked = prefs.sound;
+        document.getElementById('soundType').value = prefs.soundType;
+        document.getElementById('desktopEnabled').checked = prefs.desktop;
+        document.getElementById('groupingEnabled').checked = prefs.grouping;
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPrefs = {
+                sound: document.getElementById('soundEnabled').checked,
+                soundType: document.getElementById('soundType').value,
+                desktop: document.getElementById('desktopEnabled').checked,
+                grouping: document.getElementById('groupingEnabled').checked
+            };
+            
+            savePreferences(newPrefs);
+            document.querySelector('.notification-preferences').style.display = 'none';
+        });
+    });
+
+    // Toggle preferences panel
+    function togglePreferences() {
+        const panel = document.querySelector('.notification-preferences');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+</script>

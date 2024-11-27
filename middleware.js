@@ -1,6 +1,5 @@
-const { locationSchema, reviewSchema } = require("./schemas");
+const { locationSchema } = require("./schemas");
 const Location = require("./models/sfas");
-const Review = require("./models/review");
 const User = require("./models/user");
 const ExpressError = require("./utils/ExpressError");
 const BaseJoi = require("joi");
@@ -44,6 +43,8 @@ module.exports.validateLocation = (req, res, next) => {
 		location: Joi.string().optional().escapeHTML(),
 		description: Joi.string().optional().escapeHTML(),
 		deleteImages: Joi.array(),
+		lng: Joi.number().required(),
+		lat: Joi.number().required(),
 		_id: Joi.string(),
 	});
 
@@ -60,27 +61,6 @@ module.exports.isOwner = async (req, res, next) => {
 	const { id } = req.params;
 	const location = await Location.findById(id);
 	if (!location.owner.equals(req.user._id) && !req.user.isAdmin) {
-		req.flash("error", "You do not have permission to do that!");
-		return res.redirect(`/sfas/${id}`);
-	}
-	next();
-};
-
-// review middleware
-module.exports.validateReview = (req, res, next) => {
-	const { error } = reviewSchema.validate(req.body);
-	if (error) {
-		const msg = error.details.map((element) => element.message).join(",");
-		throw new ExpressError(msg, 400);
-	} else {
-		next();
-	}
-};
-
-module.exports.isReviewOwner = async (req, res, next) => {
-	const { id, reviewId } = req.params;
-	const review = await Review.findById(reviewId);
-	if (!review.owner.equals(req.user._id)) {
 		req.flash("error", "You do not have permission to do that!");
 		return res.redirect(`/sfas/${id}`);
 	}

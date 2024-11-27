@@ -32,6 +32,7 @@ router.post("/contacts", users.sendReports);
 
 router.get("/admin/users", isLoggedIn, isAdmin, users.adminDashboard);
 router.get("/admin/users/:id", isLoggedIn, isAdmin, users.userShowPage);
+router.get("/admin/users/:id/locations", isLoggedIn, isAdmin, users.userLocations);
 router.delete(
 	"/admin/users/:id",
 	isLoggedIn,
